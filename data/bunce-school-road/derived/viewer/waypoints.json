@@ -4,7 +4,7 @@
   "lat": 40.17274,
   "lon": -105.46905,
   "kind": "poi",
-  "title": "North trailhead \u00e2\u20ac\u201d historic Bunce School (CO-7)",
+  "title": "North trailhead \u2014 historic Bunce School (CO-7)",
   "notes": "1888 schoolhouse at the highway junction. Trail runs 5.08 mi south to Peaceful Valley. MVUM: open yearlong, ATV open, high-clearance. Full-trail videos anchored here.",
   "media": [
    {
@@ -15,14 +15,15 @@
    {
     "type": "youtube",
     "id": "rVplMT8SdV0",
-    "title": "Bunce School Road \u00e2\u20ac\u201d Overlanding Colorado (2025)"
+    "title": "Bunce School Road \u2014 Overlanding Colorado (2025)"
    },
    {
     "type": "youtube",
     "id": "mXU43YeQqJI",
-    "title": "Bunce School Road \u00e2\u20ac\u201d Winter 2020 conditions"
+    "title": "Bunce School Road \u2014 Winter 2020 conditions"
    }
   ],
+  "route": "main",
   "d": 0.0,
   "z": 2503.84,
   "offset_m": 0.1
@@ -32,9 +33,10 @@
   "lat": 40.17069,
   "lon": -105.47063,
   "kind": "junction",
-  "title": "FR 115.1A \u00e2\u20ac\u201d Bunce School Spur",
+  "title": "FR 115.1A \u2014 Bunce School Spur",
   "notes": "Right at the start heading south; dead-ends at private property within ~0.5 mi (4x4explore). MVUM: yearlong, 0.36 mi.",
   "media": [],
+  "route": "main",
   "d": 420.0,
   "z": 2532.06,
   "offset_m": 0.5
@@ -44,9 +46,10 @@
   "lat": 40.1665,
   "lon": -105.47731,
   "kind": "junction",
-  "title": "FR 217.1 \u00e2\u20ac\u201d Cave Creek",
+  "title": "FR 217.1 \u2014 Cave Creek",
   "notes": "Heads toward Highway 72 (4x4explore). Not maintained for passenger cars.",
   "media": [],
+  "route": "main",
   "d": 1220.0,
   "z": 2576.73,
   "offset_m": 0.7
@@ -56,15 +59,10 @@
   "lat": 40.165,
   "lon": -105.47991,
   "kind": "junction",
-  "title": "FR 216.1 \u00e2\u20ac\u201d Ironclads (hard side trail)",
-  "notes": "Significantly harder than Bunce proper \u00e2\u20ac\u201d reports suggest lifted + 35s, steep ledges, spotter useful. Access toward the 1965 T-33 plane crash site. Separate trail; out of scope for this model.",
-  "media": [
-   {
-    "type": "youtube",
-    "id": "mMGo5v_6KsE",
-    "title": "Wheeling Through History: the T-33 Crash Site (2023)"
-   }
-  ],
+  "title": "FR 216.1 \u2014 Ironclads (hard side trail)",
+  "notes": "Significantly harder than Bunce proper \u2014 reports suggest lifted + 35s, steep ledges, spotter useful. Modeled as the 'ironclads' route in this bundle (switch routes to scrub it).",
+  "media": [],
+  "route": "main",
   "d": 1500.0,
   "z": 2589.6,
   "offset_m": 0.6
@@ -77,6 +75,7 @@
   "title": "Hairpin #1 (rocky)",
   "notes": "105-degree hairpin (geometry-detected). 4x4explore: rocky sections concentrate at the hairpins. Description-to-location mapping approximate.",
   "media": [],
+  "route": "main",
   "d": 2430.0,
   "z": 2578.07,
   "offset_m": 0.3
@@ -89,6 +88,7 @@
   "title": "Hairpin #2 (rocky, pick your line)",
   "notes": "119-degree hairpin at mile ~2.65 (geometry-detected), coincides with the steep zone's south end.",
   "media": [],
+  "route": "main",
   "d": 4270.0,
   "z": 2571.86,
   "offset_m": 0.5
@@ -98,9 +98,10 @@
   "lat": 40.14621,
   "lon": -105.48449,
   "kind": "junction",
-  "title": "FR 213.1 \u00e2\u20ac\u201d Bennett Access",
+  "title": "FR 213.1 \u2014 Bennett Access",
   "notes": "Short left spur, dead-ends ~0.2 mi (4x4explore).",
   "media": [],
+  "route": "main",
   "d": 4420.0,
   "z": 2570.62,
   "offset_m": 0.5
@@ -111,8 +112,9 @@
   "lon": -105.48904,
   "kind": "obstacle",
   "title": "Steepest sustained pitch (21% max grade, mile ~3.1)",
-  "notes": "DEM-derived: steepest zone on the route. Obstacle candidate \u00e2\u20ac\u201d top capture priority. Interesting: matches 4x4explore's 'rocky sections ~2/3 through' better than the hairpins do.",
+  "notes": "DEM-derived: steepest zone on the route. Obstacle candidate \u2014 top capture priority. Interesting: matches 4x4explore's 'rocky sections ~2/3 through' better than the hairpins do.",
   "media": [],
+  "route": "main",
   "d": 4970.0,
   "z": 2630.35,
   "offset_m": 0.5
@@ -122,9 +124,10 @@
   "lat": 40.13598,
   "lon": -105.50504,
   "kind": "junction",
-  "title": "FR 202.1 \u00e2\u20ac\u201d Upper Basin (Park Creek)",
+  "title": "FR 202.1 \u2014 Upper Basin (Park Creek)",
   "notes": "Right intersection near the route's south end (4x4explore calls it Park Creek).",
   "media": [],
+  "route": "main",
   "d": 6680.0,
   "z": 2688.36,
   "offset_m": 0.3
@@ -137,6 +140,7 @@
   "title": "Descent switchback (upper)",
   "notes": "138-degree turn starting the final descent to Peaceful Valley.",
   "media": [],
+  "route": "main",
   "d": 7010.0,
   "z": 2688.24,
   "offset_m": 0.5
@@ -146,9 +150,10 @@
   "lat": 40.13439,
   "lon": -105.50279,
   "kind": "obstacle",
-  "title": "Descent switchback (lower) \u00e2\u20ac\u201d roughest section",
+  "title": "Descent switchback (lower) \u2014 roughest section",
   "notes": "142-degree turn. 4x4explore: second hairpin 'much rougher', larger rocks, pick your line, just before crossing back near private property.",
   "media": [],
+  "route": "main",
   "d": 7490.0,
   "z": 2658.56,
   "offset_m": 0.4
@@ -158,11 +163,31 @@
   "lat": 40.13175,
   "lon": -105.50931,
   "kind": "poi",
-  "title": "South trailhead \u00e2\u20ac\u201d Peaceful Valley",
+  "title": "South trailhead \u2014 Peaceful Valley",
   "notes": "Camp Dick / Peaceful Valley campgrounds nearby; dispersed sites along the route's NE end.",
   "media": [],
+  "route": "main",
   "d": 8173.9,
   "z": 2615.68,
+  "offset_m": 0.3
+ },
+ {
+  "id": "t33-site",
+  "route": "t33",
+  "lat": 40.15792,
+  "lon": -105.50418,
+  "kind": "poi",
+  "title": "T-33A crash site (1965)",
+  "notes": "End of the crash trail path off FR 203.1 North Basin. Wreckage of a 1965 Air Force T-33 trainer crash; treat the site with respect \u2014 it is a memorial.",
+  "media": [
+   {
+    "type": "youtube",
+    "id": "mMGo5v_6KsE",
+    "title": "Wheeling Through History: the T-33 Crash Site (2023)"
+   }
+  ],
+  "d": 3330.0,
+  "z": 2782.25,
   "offset_m": 0.3
  }
 ]

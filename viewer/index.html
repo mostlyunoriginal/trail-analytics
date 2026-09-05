@@ -18,6 +18,7 @@
   </div>
 
   <aside id="mediaPanel" hidden>
+    <button id="wpClose" title="hide media pane (re-enable via the media layer checkbox)">×</button>
     <h3 id="wpTitle"></h3>
     <p id="wpNotes"></p>
     <div id="wpMedia"></div>
@@ -29,6 +30,7 @@
       <input id="scrub" type="range" min="0" max="1000" value="0" />
     </div>
     <div class="row small">
+      <label>route <select id="route"></select></label>
       <label>view
         <select id="mode">
           <option value="follow">follow</option>
@@ -46,6 +48,7 @@
       <label><input type="checkbox" id="lyrTrail" checked /> trail</label>
       <label><input type="checkbox" id="lyrMvum" checked /> MVUM</label>
       <label><input type="checkbox" id="lyrMarks" checked /> waypoints</label>
+      <label><input type="checkbox" id="lyrMedia" checked /> media</label>
       <span id="legend">grade: <i style="background:#27b356"></i>&lt;8% <i style="background:#e0b62c"></i>&lt;14% <i style="background:#e07a2c"></i>&lt;20% <i style="background:#d63b3b"></i>≥20%</span>
     </div>
     <canvas id="profile" width="900" height="110"></canvas>

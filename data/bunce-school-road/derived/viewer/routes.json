@@ -1,0 +1,30 @@
+[
+ {
+  "id": "main",
+  "name": "Bunce School Road (FR 105)",
+  "role": "primary",
+  "length_m": 8173.9,
+  "file": "route-main.json"
+ },
+ {
+  "id": "ironclads",
+  "name": "Ironclads Road (FR 216.1)",
+  "role": "side",
+  "length_m": 2645.3,
+  "file": "route-ironclads.json"
+ },
+ {
+  "id": "ironclads-lateral",
+  "name": "Ironclads Lateral (FR 216.1A)",
+  "role": "side",
+  "length_m": 2126.5,
+  "file": "route-ironclads-lateral.json"
+ },
+ {
+  "id": "t33",
+  "name": "T-33 Crash Site (FR 203.1 North Basin + crash trail)",
+  "role": "side",
+  "length_m": 3330.3,
+  "file": "route-t33.json"
+ }
+]

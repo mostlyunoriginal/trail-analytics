@@ -26,6 +26,10 @@ attempting a trail, and refinable planning across repeated attempts.
 - **Obstacle-scale 3D comes from personal field capture**, not from crowd-sourced footage.
   Found-footage reconstruction is research-grade unreliable; deliberate capture by the user is
   exactly what photogrammetry/Gaussian splatting works well with.
+- **A trail is a route bundle.** Intake accepts "X plus Y and Z"; the agent resolves that to a
+  `trail.json` manifest (primary route + named side routes, each mapped to OSM way ids and
+  MVUM route ids). One scene per bundle: shared terrain, per-route profiles, route selector in
+  the viewer. (Decided 2026-09-05 when Ironclads + T-33 were added to Bunce School Road.)
 
 ## Architecture principle
 
@@ -142,6 +146,7 @@ Trail name in → CesiumJS flythrough in the browser.
 - [x] [C] Agent: trip-report mining for obstacle-zone hints (4x4explore + YouTube + geometry/DEM cross-check → waypoints.json)
 - [x] [C] Pre-visit data-gap report generator (per-point field capture checklist)
 - [x] [C] Analysis overlays: grade coloring on trail line, steepest-segment callouts
+- [x] [C] Multi-route trail bundles: trail.json manifest, per-route profiles/analysis, viewer route selector (Bunce + Ironclads ×2 + T-33)
 - [ ] [L] Review gap report (`data/bunce-school-road/gap-report.md`) and plan the first capture visit
 
 ## Phase 3 — Obstacle inspection mode (v3)

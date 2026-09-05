@@ -1,0 +1,39 @@
+{
+  "_comment": "Trail bundle manifest — the agent's disambiguation output. The intake request names a primary route plus side routes; each route resolves to ordered OSM way ids (pipeline chains them end-to-end) and MVUM route ids for designation overlay. Raw geometry: raw/osm-routes.json, raw/mvum-*.geojson.",
+  "name": "Bunce School Road + Ironclads + T-33",
+  "request": "bunce school road plus t-33 crash site and ironclads trails",
+  "resolved": "2026-09-05",
+  "routes": [
+    {
+      "id": "main",
+      "name": "Bunce School Road (FR 105)",
+      "role": "primary",
+      "osm_way_ids": [164929506],
+      "mvum_ids": ["105.0"]
+    },
+    {
+      "id": "ironclads",
+      "name": "Ironclads Road (FR 216.1)",
+      "role": "side",
+      "osm_way_ids": [338304625],
+      "mvum_ids": ["216.1"],
+      "notes": "Hard side trail (reports: lifted + 35s, steep ledges). Leaves Bunce at mile 0.93. OSM shows no mapped connection to the Lateral (402 m gap at the north ends) — modeled separately; verify on the ground."
+    },
+    {
+      "id": "ironclads-lateral",
+      "name": "Ironclads Lateral (FR 216.1A)",
+      "role": "side",
+      "osm_way_ids": [338303950],
+      "mvum_ids": ["216.1"],
+      "notes": "Second Ironclads leg; rejoins Bunce exactly at hairpin #1 (mile 1.51). Together with 216.1 this is likely the trip reports' 'lollipop loop', but the connecting link is unmapped in OSM."
+    },
+    {
+      "id": "t33",
+      "name": "T-33 Crash Site (FR 203.1 North Basin + crash trail)",
+      "role": "side",
+      "osm_way_ids": [574556577, 1507542637],
+      "mvum_ids": ["203.1"],
+      "notes": "North Basin track from Bunce's south end, then the short T-33A crash trail path to the 1965 wreck site."
+    }
+  ]
+}

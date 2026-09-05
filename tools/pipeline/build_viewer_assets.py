@@ -32,21 +32,49 @@ TARGET_RES_M = 2.0  # DEM grid spacing for the flythrough heightfield
 MARGIN_DEG = 0.010  # corridor margin around the trail's bbox
 PROFILE_STEP_M = 10.0
 
-# The OSM way that IS the trail (disambiguated in the Phase 0 spike).
-MAIN_OSM_WAY = 164929506
-MVUM_ROUTE_ID = "105.0"
+def chain_ways(ways: list[list[tuple[float, float]]], tol_m=25.0) -> list[tuple[float, float]]:
+    """Merge ways into one ordered line by matching endpoints (reversing as needed)."""
+    coslat = math.cos(math.radians(ways[0][0][1]))
+
+    def d(a, b):
+        return math.hypot((a[1] - b[1]) * M_PER_DEG_LAT, (a[0] - b[0]) * M_PER_DEG_LAT * coslat)
+
+    chain, rest = list(ways[0]), [list(w) for w in ways[1:]]
+    while rest:
+        for i, w in enumerate(rest):
+            if d(chain[-1], w[0]) < tol_m:
+                chain += w[1:]
+            elif d(chain[-1], w[-1]) < tol_m:
+                chain += w[::-1][1:]
+            elif d(chain[0], w[-1]) < tol_m:
+                chain = w[:-1] + chain
+            elif d(chain[0], w[0]) < tol_m:
+                chain = w[::-1][:-1] + chain
+            else:
+                continue
+            rest.pop(i)
+            break
+        else:
+            sys.exit(f"chain_ways: {len(rest)} way(s) don't connect (tol {tol_m} m)")
+    return chain
 
 
-def load_osm_centerline(path: Path) -> list[tuple[float, float]]:
-    data = json.loads(path.read_text())
-    for el in data["elements"]:
-        if el.get("id") == MAIN_OSM_WAY:
-            return [(g["lon"], g["lat"]) for g in el["geometry"]]
-    sys.exit(f"OSM way {MAIN_OSM_WAY} not in {path}")
+def load_routes(trail_dir: Path) -> list[dict]:
+    """Resolve the trail.json bundle manifest to ordered per-route coordinate lines."""
+    manifest = json.loads((trail_dir / "trail.json").read_text(encoding="utf-8"))
+    osm = json.loads((trail_dir / "raw" / "osm-routes.json").read_text(encoding="utf-8"))
+    by_id = {el["id"]: [(g["lon"], g["lat"]) for g in el["geometry"]] for el in osm["elements"]}
+    routes = []
+    for r in manifest["routes"]:
+        missing = [w for w in r["osm_way_ids"] if w not in by_id]
+        if missing:
+            sys.exit(f"route {r['id']}: OSM ways {missing} not in raw/osm-routes.json")
+        routes.append({**r, "coords": chain_ways([by_id[w] for w in r["osm_way_ids"]])})
+    return routes
 
 
 def load_mvum(path: Path) -> list[dict]:
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding="utf-8"))
     out = []
     for f in data["features"]:
         p = f.get("properties", {})
@@ -90,9 +118,10 @@ def fetch_dem(raw_dir: Path, bbox, width_px: int, height_px: int) -> np.ndarray:
     n_bands = math.ceil(width_px * height_px / MAX_EXPORT_PX)
     band_rows = math.ceil(height_px / n_bands)
     bands = []
+    bbox_key = f"{west:.6f}_{south:.6f}_{width_px}x{height_px}".replace(".", "p").replace("-", "m")
     for i in range(n_bands):
         r0, r1 = i * band_rows, min((i + 1) * band_rows, height_px)
-        band_path = raw_dir / f"dem-corridor-2m-band{i}.tif"
+        band_path = raw_dir / f"dem-{bbox_key}-band{i}.tif"
         if not band_path.exists():
             lat_n = north - r0 * (north - south) / height_px
             lat_s = north - r1 * (north - south) / height_px
@@ -187,18 +216,24 @@ def build_profile(centerline, grid, bbox):
             dz, dd = out[1]["z"] - out[0]["z"], out[1]["d"] - out[0]["d"]
         else:
             dz, dd = out[i]["z"] - out[i - 1]["z"], out[i]["d"] - out[i - 1]["d"]
-        p["g"] = round(dz / dd if dd else 0.0, 4)
+        # Endpoint resample steps can be arbitrarily short; a one-sided difference over
+        # a tiny dd fabricates extreme grades. Fall back to the neighbor's grade there.
+        if dd < 5.0 and i > 0:
+            p["g"] = out[i - 1]["g"]
+        else:
+            p["g"] = round(dz / dd if dd else 0.0, 4)
     return out
 
 
-def anchor_waypoints(trail_dir: Path, profile) -> list[dict]:
-    """Anchor curated waypoints (data/<slug>/waypoints.json) to trail chainage."""
+def anchor_waypoints(trail_dir: Path, profiles: dict) -> list[dict]:
+    """Anchor curated waypoints to chainage on their route (waypoint 'route' field, default main)."""
     src = trail_dir / "waypoints.json"
     if not src.exists():
         return []
-    coslat = math.cos(math.radians(profile[0]["lat"]))
     out = []
-    for wp in json.loads(src.read_text())["waypoints"]:
+    for wp in json.loads(src.read_text(encoding="utf-8"))["waypoints"]:
+        profile = profiles[wp.get("route", "main")]
+        coslat = math.cos(math.radians(profile[0]["lat"]))
         nearest = min(
             profile,
             key=lambda p: math.hypot(
@@ -210,8 +245,11 @@ def anchor_waypoints(trail_dir: Path, profile) -> list[dict]:
             (wp["lat"] - nearest["lat"]) * M_PER_DEG_LAT,
             (wp["lon"] - nearest["lon"]) * M_PER_DEG_LAT * coslat,
         )
-        out.append({**wp, "d": nearest["d"], "z": nearest["z"], "offset_m": round(off, 1)})
-    return sorted(out, key=lambda w: w["d"])
+        out.append(
+            {**wp, "route": wp.get("route", "main"), "d": nearest["d"], "z": nearest["z"],
+             "offset_m": round(off, 1)}
+        )
+    return sorted(out, key=lambda w: (w["route"], w["d"]))
 
 
 def build_analysis(profile) -> dict:
@@ -291,9 +329,9 @@ def main():
     raw, derived = trail_dir / "raw", trail_dir / "derived" / "viewer"
     derived.mkdir(parents=True, exist_ok=True)
 
-    centerline = load_osm_centerline(raw / "osm-overpass.json")
-    lons = [c[0] for c in centerline]
-    lats = [c[1] for c in centerline]
+    routes = load_routes(trail_dir)
+    lons = [c[0] for r in routes for c in r["coords"]]
+    lats = [c[1] for r in routes for c in r["coords"]]
     cell_deg = TARGET_RES_M / M_PER_DEG_LAT
     bbox, width_px, height_px = snap_bbox(
         (
@@ -337,27 +375,42 @@ def main():
         )
     )
 
-    profile = build_profile(centerline, grid, cbounds)
-    (derived / "centerline.json").write_text(json.dumps(profile))
-    validate_against_service(profile)
-    print(
-        f"centerline: {len(profile)} pts, {profile[-1]['d']/1609.34:.2f} mi, "
-        f"z {min(p['z'] for p in profile):.0f}..{max(p['z'] for p in profile):.0f} m, "
-        f"max grade {max(abs(p['g']) for p in profile)*100:.0f}%"
-    )
+    profiles, manifest_routes, analysis = {}, [], {}
+    for r in routes:
+        profile = build_profile(r["coords"], grid, cbounds)
+        profiles[r["id"]] = profile
+        (derived / f"route-{r['id']}.json").write_text(json.dumps(profile), encoding="utf-8")
+        analysis[r["id"]] = build_analysis(profile)
+        manifest_routes.append(
+            {
+                "id": r["id"], "name": r["name"], "role": r.get("role", "side"),
+                "length_m": profile[-1]["d"], "file": f"route-{r['id']}.json",
+            }
+        )
+        print(
+            f"route {r['id']}: {len(profile)} pts, {profile[-1]['d']/1609.34:.2f} mi, "
+            f"z {min(p['z'] for p in profile):.0f}..{max(p['z'] for p in profile):.0f} m, "
+            f"max grade {max(abs(p['g']) for p in profile)*100:.0f}%, "
+            f"{len(analysis[r['id']]['steep'])} steep / {len(analysis[r['id']]['rough'])} rough zones"
+        )
+    (derived / "routes.json").write_text(json.dumps(manifest_routes, indent=1), encoding="utf-8")
+    (derived / "analysis.json").write_text(json.dumps(analysis, indent=1), encoding="utf-8")
+    validate_against_service(profiles["main"])
 
-    mvum = load_mvum(raw / "mvum-bunce.geojson")
-    (derived / "mvum.json").write_text(json.dumps(mvum))
+    mvum, seen = [], set()
+    for f in sorted(raw.glob("mvum-*.geojson")):
+        for seg in load_mvum(f):
+            key = (seg["id"], tuple(seg["coords"][0]))
+            if key not in seen:
+                seen.add(key)
+                mvum.append(seg)
+    (derived / "mvum.json").write_text(json.dumps(mvum), encoding="utf-8")
     print(f"mvum: {len(mvum)} segments")
 
-    waypoints = anchor_waypoints(trail_dir, profile)
-    (derived / "waypoints.json").write_text(json.dumps(waypoints, indent=1))
+    waypoints = anchor_waypoints(trail_dir, profiles)
+    (derived / "waypoints.json").write_text(json.dumps(waypoints, indent=1), encoding="utf-8")
     print(f"waypoints: {len(waypoints)} anchored" + (
         f", worst offset {max(w['offset_m'] for w in waypoints)} m" if waypoints else ""))
-
-    analysis = build_analysis(profile)
-    (derived / "analysis.json").write_text(json.dumps(analysis, indent=1))
-    print(f"analysis: {len(analysis['steep'])} steep zones, {len(analysis['rough'])} rough zones")
 
 
 if __name__ == "__main__":

@@ -27,26 +27,19 @@ CHECKLIST = """  - [ ] Two–three slow orbits at waist / head / overhead height
   - [ ] Overcast if possible; skip if vegetation is whipping in the wind"""
 
 
-def main():
-    trail_dir = Path(sys.argv[1] if len(sys.argv) > 1 else "data/bunce-school-road")
-    dv = trail_dir / "derived" / "viewer"
-    profile = json.loads((dv / "centerline.json").read_text())
-    waypoints = json.loads((dv / "waypoints.json").read_text())
-    analysis = json.loads((dv / "analysis.json").read_text())
-    mvum = json.loads((dv / "mvum.json").read_text())
-    length = profile[-1]["d"]
+def route_targets(route_id, profile, waypoints, analysis):
+    """Capture targets for one route: obstacle waypoints + uncovered analysis zones."""
 
     def at(d):
         return min(profile, key=lambda p: abs(p["d"] - d))
 
-    # --- capture targets
     targets = [
         {
             "d": w["d"], "title": w["title"], "why": w["notes"],
             "lat": w["lat"], "lon": w["lon"], "kind": "waypoint",
         }
         for w in waypoints
-        if w["kind"] == "obstacle"
+        if w["kind"] == "obstacle" and w["route"] == route_id
     ]
     for zone in analysis["steep"] + analysis["rough"]:
         mid = (zone["d0"] + zone["d1"]) / 2
@@ -66,9 +59,33 @@ def main():
             }
         )
     targets.sort(key=lambda t: t["d"])
-
-    media_pts = [w["d"] for w in waypoints if w.get("media")]
+    media_pts = [w["d"] for w in waypoints if w.get("media") and w["route"] == route_id]
     gaps = [t for t in targets if not any(abs(m - t["d"]) < MEDIA_RADIUS_M for m in media_pts)]
+    return targets, gaps
+
+
+def main():
+    trail_dir = Path(sys.argv[1] if len(sys.argv) > 1 else "data/bunce-school-road")
+    dv = trail_dir / "derived" / "viewer"
+    routes = json.loads((dv / "routes.json").read_text(encoding="utf-8"))
+    waypoints = json.loads((dv / "waypoints.json").read_text(encoding="utf-8"))
+    analysis = json.loads((dv / "analysis.json").read_text(encoding="utf-8"))
+    mvum = json.loads((dv / "mvum.json").read_text(encoding="utf-8"))
+    profiles = {
+        r["id"]: json.loads((dv / r["file"]).read_text(encoding="utf-8")) for r in routes
+    }
+    profile = profiles[routes[0]["id"]]  # primary route, for jurisdiction check
+    length = profile[-1]["d"]
+
+    def at(d):
+        return min(profile, key=lambda p: abs(p["d"] - d))
+
+    per_route = {
+        r["id"]: route_targets(r["id"], profiles[r["id"]], waypoints, analysis[r["id"]])
+        for r in routes
+    }
+    n_targets = sum(len(t) for t, _ in per_route.values())
+    n_gaps = sum(len(g) for _, g in per_route.values())
 
     # --- MVUM jurisdiction gaps (no designated segment within 50 m of centerline)
     coslat = math.cos(math.radians(profile[0]["lat"]))
@@ -99,34 +116,45 @@ def main():
         juris_runs.append((start, length))
 
     # --- report
+    total_mi = sum(r["length_m"] for r in routes) / MI
     lines = [
         f"# Data-Gap Report — {trail_dir.name}",
         "",
         f"*Generated {date.today().isoformat()} by `tools/pipeline/gap_report.py`. "
         f"Capture technique: `docs/capture-protocol.md`.*",
         "",
-        f"Trail: {length / MI:.2f} mi, {len(targets)} capture targets, "
-        f"**{len(gaps)} with no anchored media** within {MEDIA_RADIUS_M:.0f} m.",
-        "",
-        "## Capture list (north → south)",
+        f"Bundle: {len(routes)} routes, {total_mi:.2f} mi total, {n_targets} capture targets, "
+        f"**{n_gaps} with no anchored media** within {MEDIA_RADIUS_M:.0f} m.",
         "",
     ]
-    for i, t in enumerate(gaps, 1):
-        p = at(t["d"])
-        lines += [
-            f"### {i}. {t['title']}",
-            f"- **Where:** mile {t['d'] / MI:.2f} · {t['lat']:.5f}, {t['lon']:.5f} · "
-            f"{p['z'] * 3.28084:,.0f} ft · local grade {p['g'] * 100:.0f}%",
-            f"- **Why:** {t['why']}",
-            "- **Shoot:**",
-            CHECKLIST,
-            "",
-        ]
-    covered = [t for t in targets if t not in gaps]
-    if covered:
-        lines += ["## Already has nearby media", ""]
-        lines += [f"- {t['title']} (mile {t['d'] / MI:.2f})" for t in covered]
-        lines += [""]
+    counter = 0
+    for r in routes:
+        targets, gaps = per_route[r["id"]]
+        rprofile = profiles[r["id"]]
+
+        def rat(d):
+            return min(rprofile, key=lambda p: abs(p["d"] - d))
+
+        lines += [f"## {r['name']} — capture list ({len(gaps)} gaps)", ""]
+        if not gaps:
+            lines += ["Nothing uncovered on this route.", ""]
+        for t in gaps:
+            counter += 1
+            p = rat(t["d"])
+            lines += [
+                f"### {counter}. {t['title']}",
+                f"- **Where:** mile {t['d'] / MI:.2f} · {t['lat']:.5f}, {t['lon']:.5f} · "
+                f"{p['z'] * 3.28084:,.0f} ft · local grade {p['g'] * 100:.0f}%",
+                f"- **Why:** {t['why']}",
+                "- **Shoot:**",
+                CHECKLIST,
+                "",
+            ]
+        covered = [t for t in targets if t not in gaps]
+        if covered:
+            lines += ["Already has nearby media:", ""]
+            lines += [f"- {t['title']} (mile {t['d'] / MI:.2f})" for t in covered]
+            lines += [""]
     lines += [
         "## Route-data gaps (not capture tasks)",
         "",
@@ -140,7 +168,8 @@ def main():
 
     out = trail_dir / "gap-report.md"
     out.write_text("\n".join(lines), encoding="utf-8")
-    print(f"wrote {out}: {len(gaps)} capture gaps, {len(juris_runs)} jurisdiction gaps")
+    print(f"wrote {out}: {n_gaps} capture gaps across {len(routes)} routes, "
+          f"{len(juris_runs)} jurisdiction gaps")
 
 
 if __name__ == "__main__":

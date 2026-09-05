@@ -34,7 +34,16 @@
       "lat": 40.16500, "lon": -105.47991,
       "kind": "junction",
       "title": "FR 216.1 — Ironclads (hard side trail)",
-      "notes": "Significantly harder than Bunce proper — reports suggest lifted + 35s, steep ledges, spotter useful. Access toward the 1965 T-33 plane crash site. Separate trail; out of scope for this model.",
+      "notes": "Significantly harder than Bunce proper — reports suggest lifted + 35s, steep ledges, spotter useful. Modeled as the 'ironclads' route in this bundle (switch routes to scrub it).",
+      "media": []
+    },
+    {
+      "id": "t33-site",
+      "route": "t33",
+      "lat": 40.15792, "lon": -105.50418,
+      "kind": "poi",
+      "title": "T-33A crash site (1965)",
+      "notes": "End of the crash trail path off FR 203.1 North Basin. Wreckage of a 1965 Air Force T-33 trainer crash; treat the site with respect — it is a memorial.",
       "media": [
         { "type": "youtube", "id": "mMGo5v_6KsE", "title": "Wheeling Through History: the T-33 Crash Site (2023)" }
       ]

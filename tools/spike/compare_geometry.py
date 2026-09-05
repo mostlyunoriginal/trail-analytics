@@ -52,7 +52,7 @@ def min_dist_to_lines(p, lines, coslat):
 
 def load_osm_lines(path, name_ref_filter):
     """OSM Overpass JSON -> list of [(lat, lon), ...] for matching highway ways."""
-    data = json.loads(Path(path).read_text())
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
     lines = []
     for el in data.get("elements", []):
         tags = el.get("tags", {}) or {}
@@ -68,7 +68,7 @@ def load_osm_lines(path, name_ref_filter):
 
 def load_geojson_lines(path, id_filter):
     """GeoJSON (MVUM pull) -> list of [(lat, lon), ...] for matching features."""
-    data = json.loads(Path(path).read_text())
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
     lines = []
     for f in data.get("features", []):
         props = f.get("properties", {}) or {}
@@ -129,7 +129,7 @@ def main():
     }
     out = trail_dir / "derived"
     out.mkdir(exist_ok=True)
-    (out / "geometry-comparison.json").write_text(json.dumps(stats, indent=2))
+    (out / "geometry-comparison.json").write_text(json.dumps(stats, indent=2), encoding="utf-8")
     print(json.dumps(stats, indent=2))
 
 

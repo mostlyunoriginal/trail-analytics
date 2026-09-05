@@ -33,3 +33,14 @@ log for a future enhancement: add a snap back to defaults button for all sliders
 now has a ↺ reset button (view mode, look°, range, exaggeration back to defaults). Shipped
 with the Phase 2 viewer update.
 
+## N3525385 — 2026-09-05 14:37 — Phase 1
+- status: addressed
+- response-requested: no
+- task-index: 1
+- re: "Viewer: scrub along trail, perspective controls, layer toggles (visual check passed 2026-0"
+
+log future enhancement: ability to toggle off right side pane
+
+**Action (Claude, 2026-09-05):** Implemented with the multi-route update — the media pane
+now has an × close button, and a "media" checkbox in the layers row re-enables it.
+
