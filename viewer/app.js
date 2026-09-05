@@ -188,6 +188,19 @@ async function boot() {
     })
   );
 
+  // marker showing the current scrub position (main orientation aid in global view)
+  const posMarker = viewer.entities.add({
+    position: Cesium.Cartesian3.fromDegrees(meta.west, meta.south),
+    point: {
+      pixelSize: 10,
+      color: Cesium.Color.fromCssColorString("#35d4e8"),
+      outlineColor: Cesium.Color.BLACK, outlineWidth: 2,
+      heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    },
+  });
+  const BUNDLE_RECT = Cesium.Rectangle.fromDegrees(meta.west, meta.south, meta.east, meta.north);
+
   // -------- UI state
   const ui = Object.fromEntries(
     ["play", "scrub", "route", "mode", "heading", "range", "exagg", "exaggVal", "reset",
@@ -268,14 +281,19 @@ async function boot() {
   const update = () => {
     const ex = viewer.scene.verticalExaggeration;
     const p = at(d), ahead = at(Math.min(length, d + 80));
-    const target = Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.z * ex + 6);
     const mode = ui.mode.value;
-    // Heading slider: look offset from direction of travel in follow/top;
-    // absolute compass heading (0 = north) in fixed mode — steadier on switchbacks.
-    const base = mode === "fixed" ? 0 : bearing(p, ahead);
-    const heading = base + Cesium.Math.toRadians(+ui.heading.value);
-    const pitch = mode === "top" ? Cesium.Math.toRadians(-88) : Cesium.Math.toRadians(-14);
-    viewer.camera.lookAt(target, new Cesium.HeadingPitchRange(heading, pitch, +ui.range.value));
+    posMarker.position = Cesium.Cartesian3.fromDegrees(p.lon, p.lat);
+    if (mode !== "global") {
+      // Trail-locked camera. Heading slider: look offset from direction of travel in
+      // follow/top; absolute compass heading (0 = north) in fixed mode — steadier on
+      // switchbacks. Global mode never touches the camera: Cesium's free controls own
+      // it (drag = lateral shift, wheel = zoom, ctrl/middle-drag = elevation angle).
+      const target = Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.z * ex + 6);
+      const base = mode === "fixed" ? 0 : bearing(p, ahead);
+      const heading = base + Cesium.Math.toRadians(+ui.heading.value);
+      const pitch = mode === "top" ? Cesium.Math.toRadians(-88) : Cesium.Math.toRadians(-14);
+      viewer.camera.lookAt(target, new Cesium.HeadingPitchRange(heading, pitch, +ui.range.value));
+    }
     ui.hudMile.textContent = (d / MI).toFixed(2);
     ui.hudElev.textContent = Math.round(p.z * FT).toLocaleString();
     ui.hudGrade.textContent = (p.g * 100).toFixed(1);
@@ -287,7 +305,15 @@ async function boot() {
   // -------- controls
   ui.route.addEventListener("change", () => setRoute(ui.route.value));
   ui.scrub.addEventListener("input", () => { d = (+ui.scrub.value / 1000) * length; update(); });
-  ui.mode.addEventListener("change", update);
+  ui.mode.addEventListener("change", () => {
+    const global = ui.mode.value === "global";
+    ui.heading.disabled = ui.range.disabled = global;
+    if (global) {
+      viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY); // release the trail lock
+      viewer.camera.flyTo({ destination: BUNDLE_RECT, duration: 1.2 });
+    }
+    update();
+  });
   ui.heading.addEventListener("input", update);
   ui.range.addEventListener("input", update);
   ui.exagg.addEventListener("input", () => {
@@ -314,6 +340,7 @@ async function boot() {
   });
   ui.reset.addEventListener("click", () => {
     ui.mode.value = "follow";
+    ui.heading.disabled = ui.range.disabled = false;
     ui.heading.value = 0;
     ui.range.value = 220;
     ui.exagg.value = 10;
