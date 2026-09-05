@@ -138,11 +138,11 @@ Trail name in → CesiumJS flythrough in the browser.
 ## Phase 2 — Anchored media + data-gap reports (v2)
 <!-- ringboard: window=2026-12-01..2027-03-31 -->
 
-- [ ] [C] Waypoint-anchored photos and YouTube embeds, surfaced by scrub position
-- [ ] [C] Agent: trip-report mining for obstacle-zone hints
-- [ ] [C] Pre-visit data-gap report generator (per-point field capture checklist)
-- [ ] [C] Analysis overlays: grade coloring on trail line, steepest-segment callouts
-- [ ] [L] Review gap report and plan the first capture visit
+- [x] [C] Waypoint-anchored photos and YouTube embeds, surfaced by scrub position
+- [x] [C] Agent: trip-report mining for obstacle-zone hints (4x4explore + YouTube + geometry/DEM cross-check → waypoints.json)
+- [x] [C] Pre-visit data-gap report generator (per-point field capture checklist)
+- [x] [C] Analysis overlays: grade coloring on trail line, steepest-segment callouts
+- [ ] [L] Review gap report (`data/bunce-school-road/gap-report.md`) and plan the first capture visit
 
 ## Phase 3 — Obstacle inspection mode (v3)
 <!-- ringboard: window=2027-04-01..2027-06-30 -->

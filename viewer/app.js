@@ -43,11 +43,13 @@ class Heightfield {
 // ---------------------------------------------------------------- boot
 
 async function boot() {
-  const [meta, bin, profile, mvum] = await Promise.all([
+  const [meta, bin, profile, mvum, waypoints, analysis] = await Promise.all([
     fetch(DATA + "terrain.json").then((r) => r.json()),
     fetch(DATA + "terrain.bin").then((r) => r.arrayBuffer()),
     fetch(DATA + "centerline.json").then((r) => r.json()),
     fetch(DATA + "mvum.json").then((r) => r.json()),
+    fetch(DATA + "waypoints.json").then((r) => (r.ok ? r.json() : [])),
+    fetch(DATA + "analysis.json").then((r) => (r.ok ? r.json() : { steep: [], rough: [] })),
   ]);
   const hf = new Heightfield(meta, new Float32Array(bin));
   const length = profile[profile.length - 1].d;
@@ -135,11 +137,83 @@ async function boot() {
     })
   );
 
+  // -------- waypoint markers + steep-zone callouts
+  const KIND_COLOR = { obstacle: "#d63b3b", junction: "#3d7edb", poi: "#27b356" };
+  const markEntities = waypoints.map((w) =>
+    viewer.entities.add({
+      position: Cesium.Cartesian3.fromDegrees(w.lon, w.lat),
+      properties: { wpD: w.d },
+      point: {
+        pixelSize: 9,
+        color: Cesium.Color.fromCssColorString(KIND_COLOR[w.kind] || "#ccc"),
+        outlineColor: Cesium.Color.BLACK, outlineWidth: 1,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+      label: {
+        text: w.title,
+        font: "12px system-ui",
+        fillColor: Cesium.Color.WHITE,
+        showBackground: true,
+        backgroundColor: Cesium.Color.fromCssColorString("#0c1016").withAlpha(0.75),
+        pixelOffset: new Cesium.Cartesian2(0, -18),
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 2500),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    })
+  );
+  const calloutEntities = analysis.steep.slice(0, 3).map((zone) => {
+    const mid = (zone.d0 + zone.d1) / 2;
+    const p = profile[Math.min(profile.length - 1, Math.round(mid / 10))];
+    return viewer.entities.add({
+      position: Cesium.Cartesian3.fromDegrees(p.lon, p.lat),
+      label: {
+        text: `▲ ${(zone.mean * 100).toFixed(0)}% for ${(zone.d1 - zone.d0).toFixed(0)} m`,
+        font: "13px system-ui",
+        fillColor: Cesium.Color.fromCssColorString("#ffb1b1"),
+        showBackground: true,
+        backgroundColor: Cesium.Color.fromCssColorString("#3a1010").withAlpha(0.85),
+        pixelOffset: new Cesium.Cartesian2(0, -42),
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 6000),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    });
+  });
+
   // -------- camera + scrub
   const ui = Object.fromEntries(
-    ["play", "scrub", "mode", "heading", "range", "exagg", "exaggVal", "lyrNaip", "lyrTrail", "lyrMvum", "hudMile", "hudElev", "hudGrade"]
+    ["play", "scrub", "mode", "heading", "range", "exagg", "exaggVal", "reset", "lyrNaip", "lyrTrail", "lyrMvum", "lyrMarks", "hudMile", "hudElev", "hudGrade", "wpTitle", "wpNotes", "wpMedia"]
       .map((id) => [id, document.getElementById(id)])
   );
+  const mediaPanel = document.getElementById("mediaPanel");
+
+  // -------- media surfacing: nearest waypoint within reach of the scrub position
+  let shownWp = null;
+  const surfaceMedia = () => {
+    let best = null;
+    for (const w of waypoints) {
+      const dist = Math.abs(w.d - d);
+      if (dist < 250 && (!best || dist < Math.abs(best.d - d))) best = w;
+    }
+    if (best === shownWp) return;
+    shownWp = best;
+    if (!best) { mediaPanel.hidden = true; return; }
+    ui.wpTitle.textContent = `${best.title} — mile ${(best.d / MI).toFixed(2)}`;
+    ui.wpNotes.textContent = best.notes || "";
+    ui.wpMedia.innerHTML = (best.media || [])
+      .map(
+        (m) =>
+          m.type === "youtube"
+            ? `<p class="mtitle">${m.title || ""}</p>` +
+              `<iframe src="https://www.youtube-nocookie.com/embed/${m.id}" ` +
+              `title="${m.title || "video"}" allowfullscreen loading="lazy"></iframe>`
+            : ""
+      )
+      .join("");
+    mediaPanel.hidden = false;
+  };
 
   const at = (d) => {
     const t = Math.min(1, Math.max(0, d / length)) * (profile.length - 1);
@@ -176,6 +250,7 @@ async function boot() {
     ui.hudElev.textContent = Math.round(p.z * FT).toLocaleString();
     ui.hudGrade.textContent = (p.g * 100).toFixed(1);
     ui.scrub.value = Math.round((d / length) * 1000);
+    surfaceMedia();
     drawProfile();
   };
 
@@ -192,6 +267,26 @@ async function boot() {
   ui.lyrNaip.addEventListener("change", () => (naipLayer.show = ui.lyrNaip.checked));
   ui.lyrTrail.addEventListener("change", () => trailEntities.forEach((e) => (e.show = ui.lyrTrail.checked)));
   ui.lyrMvum.addEventListener("change", () => mvumEntities.forEach((e) => (e.show = ui.lyrMvum.checked)));
+  ui.lyrMarks.addEventListener("change", () =>
+    [...markEntities, ...calloutEntities].forEach((e) => (e.show = ui.lyrMarks.checked))
+  );
+
+  ui.reset.addEventListener("click", () => {
+    ui.mode.value = "follow";
+    ui.heading.value = 0;
+    ui.range.value = 220;
+    ui.exagg.value = 10;
+    viewer.scene.verticalExaggeration = 1;
+    ui.exaggVal.textContent = "1.0×";
+    update();
+  });
+
+  // click a waypoint marker to jump the scrub position there
+  viewer.screenSpaceEventHandler.setInputAction((click) => {
+    const picked = viewer.scene.pick(click.position);
+    const wpD = picked?.id?.properties?.wpD?.getValue?.();
+    if (wpD !== undefined) { d = wpD; update(); }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
   ui.play.addEventListener("click", () => {
     playing = !playing;
@@ -231,6 +326,17 @@ async function boot() {
     for (let i = 0; i < profile.length - 1; i++) {
       ctx.fillStyle = GRADE_BUCKETS[bucket(profile[i].g)].color;
       ctx.fillRect((profile[i].d / length) * W, H - 6, Math.ceil(W / profile.length) + 1, 4);
+    }
+    for (const zone of analysis.steep) {
+      ctx.fillStyle = "rgba(214, 59, 59, 0.16)";
+      ctx.fillRect((zone.d0 / length) * W, 0, ((zone.d1 - zone.d0) / length) * W, H);
+    }
+    for (const w of waypoints) {
+      ctx.fillStyle = KIND_COLOR[w.kind] || "#ccc";
+      const wx = (w.d / length) * W;
+      ctx.beginPath();
+      ctx.moveTo(wx, 2); ctx.lineTo(wx + 4, 8); ctx.lineTo(wx, 14); ctx.lineTo(wx - 4, 8);
+      ctx.closePath(); ctx.fill();
     }
     const x = (d / length) * W;
     ctx.strokeStyle = "#ffffff";

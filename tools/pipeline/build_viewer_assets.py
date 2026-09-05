@@ -191,6 +191,74 @@ def build_profile(centerline, grid, bbox):
     return out
 
 
+def anchor_waypoints(trail_dir: Path, profile) -> list[dict]:
+    """Anchor curated waypoints (data/<slug>/waypoints.json) to trail chainage."""
+    src = trail_dir / "waypoints.json"
+    if not src.exists():
+        return []
+    coslat = math.cos(math.radians(profile[0]["lat"]))
+    out = []
+    for wp in json.loads(src.read_text())["waypoints"]:
+        nearest = min(
+            profile,
+            key=lambda p: math.hypot(
+                (wp["lat"] - p["lat"]) * M_PER_DEG_LAT,
+                (wp["lon"] - p["lon"]) * M_PER_DEG_LAT * coslat,
+            ),
+        )
+        off = math.hypot(
+            (wp["lat"] - nearest["lat"]) * M_PER_DEG_LAT,
+            (wp["lon"] - nearest["lon"]) * M_PER_DEG_LAT * coslat,
+        )
+        out.append({**wp, "d": nearest["d"], "z": nearest["z"], "offset_m": round(off, 1)})
+    return sorted(out, key=lambda w: w["d"])
+
+
+def build_analysis(profile) -> dict:
+    """Sustained-steepness and roughness zones along the profile."""
+    g = [p["g"] for p in profile]
+    n = len(g)
+
+    def rolling(fn, half):
+        return [fn(g[max(0, i - half) : i + half + 1]) for i in range(n)]
+
+    mean_abs = rolling(lambda w: sum(abs(x) for x in w) / len(w), 7)  # ~150m window
+    std = rolling(
+        lambda w: (sum((x - sum(w) / len(w)) ** 2 for x in w) / len(w)) ** 0.5, 5
+    )
+
+    def zones(metric, thresh, min_pts=3):
+        found, start = [], None
+        for i in range(n + 1):
+            hot = i < n and metric[i] >= thresh
+            if hot and start is None:
+                start = i
+            elif not hot and start is not None:
+                if i - start >= min_pts:
+                    seg = metric[start:i]
+                    found.append(
+                        {
+                            "d0": profile[start]["d"],
+                            "d1": profile[i - 1]["d"],
+                            "peak": round(max(seg), 4),
+                            "mean": round(sum(seg) / len(seg), 4),
+                        }
+                    )
+                start = None
+        return sorted(found, key=lambda z: -z["peak"])[:8]
+
+    return {
+        "steep": zones(mean_abs, 0.12),
+        "rough": zones(std, 0.045),
+        "stats": {
+            "length_m": profile[-1]["d"],
+            "zmin": min(p["z"] for p in profile),
+            "zmax": max(p["z"] for p in profile),
+            "max_grade": round(max(abs(x) for x in g), 4),
+        },
+    }
+
+
 def validate_against_service(profile, tolerance_m=8.0):
     """Spot-check grid-derived elevations against the service's point-identify.
 
@@ -281,6 +349,15 @@ def main():
     mvum = load_mvum(raw / "mvum-bunce.geojson")
     (derived / "mvum.json").write_text(json.dumps(mvum))
     print(f"mvum: {len(mvum)} segments")
+
+    waypoints = anchor_waypoints(trail_dir, profile)
+    (derived / "waypoints.json").write_text(json.dumps(waypoints, indent=1))
+    print(f"waypoints: {len(waypoints)} anchored" + (
+        f", worst offset {max(w['offset_m'] for w in waypoints)} m" if waypoints else ""))
+
+    analysis = build_analysis(profile)
+    (derived / "analysis.json").write_text(json.dumps(analysis, indent=1))
+    print(f"analysis: {len(analysis['steep'])} steep zones, {len(analysis['rough'])} rough zones")
 
 
 if __name__ == "__main__":

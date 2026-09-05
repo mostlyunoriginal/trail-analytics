@@ -23,3 +23,13 @@ let's go!
 checked off; findings + GO recommendation in `data/bunce-school-road/spike-report.md`.
 The gate itself (task 5) awaits the user's call.
 
+## N7b2941d — 2026-09-05 14:15 — Phase 1
+- status: addressed
+- response-requested: no
+
+log for a future enhancement: add a snap back to defaults button for all sliders
+
+**Action (Claude, 2026-09-05):** Implemented directly rather than just logging — the viewer
+now has a ↺ reset button (view mode, look°, range, exaggeration back to defaults). Shipped
+with the Phase 2 viewer update.
+
