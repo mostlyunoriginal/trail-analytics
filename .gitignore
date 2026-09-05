@@ -5,3 +5,4 @@ data/**/*.png
 data/**/*.laz
 NoteAttachments/
 __pycache__/
+data/**/*.bin
