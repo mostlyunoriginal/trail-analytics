@@ -165,9 +165,11 @@ async function boot() {
     const p = at(d), ahead = at(Math.min(length, d + 80));
     const target = Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.z * ex + 6);
     const mode = ui.mode.value;
-    // Heading slider is a look offset from the direction of travel in every mode:
-    // 0 = forward, ±90 = out the side windows, ±180 = back down the trail.
-    const heading = bearing(p, ahead) + Cesium.Math.toRadians(+ui.heading.value);
+    // Heading slider: in follow/top it's a look offset from the direction of travel
+    // (0 = forward, ±90 = side, ±180 = back). In fixed mode it's an absolute compass
+    // heading (0 = north) that stays constant while scrubbing — steadier on switchbacks.
+    const base = mode === "fixed" ? 0 : bearing(p, ahead);
+    const heading = base + Cesium.Math.toRadians(+ui.heading.value);
     const pitch = mode === "top" ? Cesium.Math.toRadians(-88) : Cesium.Math.toRadians(-14);
     viewer.camera.lookAt(target, new Cesium.HeadingPitchRange(heading, pitch, +ui.range.value));
     ui.hudMile.textContent = (d / MI).toFixed(2);

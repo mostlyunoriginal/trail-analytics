@@ -133,7 +133,7 @@ Trail name in → CesiumJS flythrough in the browser.
   - [x] Per-trail cache layout (directory per trail slug)
 - [x] [C] Viewer: scrub along trail, perspective controls, layer toggles (visual check passed 2026-09-05)
 - [x] [C] Elevation/grade profile and per-segment stats
-- [ ] [L] Field-check the flythrough against real knowledge of the trail
+- [x] [L] Field-check the flythrough against real knowledge of the trail (confirmed 2026-09-05: "jives with my memories")
 
 ## Phase 2 — Anchored media + data-gap reports (v2)
 <!-- ringboard: window=2026-12-01..2027-03-31 -->
