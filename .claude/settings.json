@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py \"$CLAUDE_PROJECT_DIR/tools/ringboard/notes_nudge.py\"",
+            "shell": "bash",
+            "timeout": 15,
+            "statusMessage": "Checking NOTES.md for open notes"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -5,11 +5,26 @@ public data gathered (USGS 3DEP DEM, NAIP imagery, USFS MVUM / OSM routes) → i
 flythrough in the browser (CesiumJS), with waypoint-anchored media and, eventually, Gaussian-splat
 obstacle inspection from personal field capture.
 
-## Read first
+## Session protocol
 
-- **`PLAN.md`** — the founding document: vision, settled constraints, data sources, and the
-  v1/v2/v3 roadmap. Read it before making architecture decisions; update it when decisions change.
-- `docs/capture-protocol.md` — field checklist for obstacle photogrammetry capture.
+1. Check `NOTES.md` and act on every `status: open` note per the protocol in its header
+   (notes flagged `response-requested: yes` require a written **Response** in the entry).
+2. Read `PLAN.md` before making architecture decisions; update it when decisions change.
+
+## Workspace map
+
+| Path | What it is |
+|---|---|
+| `PLAN.md` | Founding document (vision, constraints, data sources, roadmap) **and** the Ringboard work tracker at the bottom — single source of truth for the plan. |
+| `NOTES.md` | User's notes to agents; lifecycle governed by its header. Never delete entries. |
+| `tools/ringboard/` | Ringboard dashboard kit (port 8350). Launch via `ringboard.cmd` at repo root. |
+| `docs/capture-protocol.md` | Field checklist for obstacle photogrammetry capture. |
+
+## Maintenance
+
+- Keep PLAN.md's checkbox statuses (`[ ]`/`[~]`/`[x]`/`[!]`) and
+  `<!-- ringboard: ... -->` annotations (`window=`, `blocker=`) current as work proceeds —
+  the board's On-deck panel and schedule colors are only as honest as the checkboxes.
 
 ## Ground rules
 

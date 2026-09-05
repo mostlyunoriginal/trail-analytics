@@ -1,0 +1,692 @@
+<title>__TITLE__ — Ringboard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f5f5f2;
+    --surface: #fcfcfb;
+    --ink: #171614;
+    --ink-2: #52514e;
+    --muted: #898781;
+    --hairline: #e1e0d9;
+    --border: rgba(11, 11, 11, 0.10);
+    --accent: #4a3aa7;
+    --blue: #2a78d6;
+    --aqua: #1baf7a;
+    --green: #0ca30c;
+    --warn: #fab219;
+    --serious: #ec835a;
+    --crit: #d03b3b;
+    --shadow: 0 10px 30px rgba(11, 11, 11, 0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d0d0d;
+      --surface: #1a1a19;
+      --ink: #f5f4ef;
+      --ink-2: #c3c2b7;
+      --muted: #898781;
+      --hairline: #2c2c2a;
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #9085e9;
+      --blue: #3987e5;
+      --aqua: #199e70;
+      --green: #0ca30c;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d0d0d;
+    --surface: #1a1a19;
+    --ink: #f5f4ef;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --hairline: #2c2c2a;
+    --border: rgba(255, 255, 255, 0.12);
+    --accent: #9085e9;
+    --blue: #3987e5;
+    --aqua: #199e70;
+    --green: #0ca30c;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14.5px;
+    line-height: 1.45;
+    min-height: 100vh;
+  }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 28px 40px; }
+
+  .topbar {
+    display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 32px;
+    padding-bottom: 18px; border-bottom: 1px solid var(--hairline); margin-bottom: 24px;
+  }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+  }
+  .ident { min-width: 0; flex: 1 1 100%; }   /* title/breadcrumb always gets its own row */
+  .ident h1 { margin: 2px 0 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+  .crumb { color: inherit; text-decoration: none; cursor: pointer; background: none; border: 0; padding: 0; font: inherit; font-weight: 600; }
+  .crumb:hover { color: var(--accent); text-decoration: underline; }
+  .crumb-sep { color: var(--muted); margin: 0 8px; font-weight: 400; }
+  .crumb-cur { color: var(--ink); }
+  .snapline { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+  .stats { display: flex; gap: 28px; align-items: flex-end; flex-wrap: wrap; }
+  .hero .val { font-size: 44px; font-weight: 600; line-height: 1; letter-spacing: -0.02em; }
+  .tile .val { font-size: 19px; font-weight: 600; line-height: 1.2; }
+  .tile .val.alert { color: var(--serious); }
+  .stat-label { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+  .controls { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  .seg { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); }
+  .seg button { border: 0; background: transparent; padding: 7px 12px; font-size: 12.5px; cursor: pointer; color: var(--ink-2); }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); font-weight: 500; }
+  .btn {
+    border: 1px solid var(--border); background: var(--surface); border-radius: 8px;
+    padding: 7px 12px; font-size: 12.5px; cursor: pointer; color: var(--ink-2);
+  }
+  .btn:hover { border-color: var(--accent); color: var(--ink); }
+  .badge {
+    display: inline-block; min-width: 17px; padding: 0 4px; border-radius: 9px; margin-left: 5px;
+    background: var(--accent); color: var(--surface); font-size: 10.5px; line-height: 17px; text-align: center;
+  }
+
+  .boardrow { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 14px; align-items: start; margin-bottom: 30px; }
+  .rings { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px 10px 14px; text-align: center; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    min-width: 0; overflow: hidden;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(11,11,11,0.08); border-color: var(--accent); }
+  .card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .ringwrap { position: relative; width: 116px; height: 116px; margin-bottom: 8px; }
+  .ringwrap svg { display: block; width: 100%; height: 100%; }
+  .ringcenter { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .ringcenter .pct { font-size: 23px; font-weight: 600; letter-spacing: -0.01em; line-height: 1; }
+  .ringcenter .frac { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+  .ringcenter .drill { font-size: 9.5px; color: var(--muted); margin-top: 2px; }
+  .card .pnum {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+  }
+  .card .pname {
+    font-size: 13px; font-weight: 500; line-height: 1.25;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    max-width: 100%; overflow-wrap: anywhere;   /* long code paths must break, not bleed */
+  }
+  .card .pdates { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+  .chiprow { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin-top: 7px; min-height: 18px; }
+  .chip {
+    font-size: 10px; padding: 2px 7px; border-radius: 9px; border: 1px solid var(--border);
+    color: var(--ink-2); background: transparent; line-height: 1.3;
+  }
+  .chip.gate { border-color: var(--accent); color: var(--accent); }
+  .chip.blocked { border-color: var(--crit); color: var(--crit); }
+  .chip.health { border: 0; font-weight: 500; }
+
+  .nextup { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px 8px; }
+  .nextup h2 { font-size: 13px; font-weight: 600; margin: 0; }
+  .nextup .nu-sub { font-size: 10.5px; color: var(--muted); margin: 1px 0 6px; }
+  .nu-row { display: flex; gap: 8px; align-items: flex-start; padding: 9px 0; border-top: 1px solid var(--hairline); cursor: pointer; }
+  .nu-row:hover .nu-text { color: var(--accent); }
+  .nu-own {
+    flex: none; margin-top: 1px; font-weight: 600;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10px; padding: 2px 7px;
+    border-radius: 5px; background: var(--bg); border: 1px solid var(--hairline); color: var(--ink);
+  }
+  .nu-main { flex: 1; min-width: 0; }
+  .nu-text {
+    font-size: 12.5px; line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+  .nu-text .glyph { font-size: 12px; }
+  .nu-ctx { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 9.5px; color: var(--muted); margin-top: 3px; }
+
+  .tl-section h2, .panel h2 { font-size: 13px; font-weight: 600; margin: 0 0 10px; }
+  .tl { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 18px 30px; }
+  .tl-row { display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 10px; height: 22px; }
+  .tl-label { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10.5px; color: var(--muted); }
+  .tl-track { position: relative; height: 100%; }
+  .tl-bar { position: absolute; top: 6px; height: 9px; border-radius: 5px; min-width: 6px; }
+  .tl-grid { position: absolute; top: 18px; bottom: 30px; left: 62px; right: 18px; pointer-events: none; }
+  .tl-today { position: absolute; top: -6px; bottom: -6px; width: 1.5px; background: var(--ink); opacity: 0.65; }
+  .tl-today-label {
+    position: absolute; top: -6px; transform: translate(6px, -2px);
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 9.5px; color: var(--ink-2);
+  }
+  .tl-tick { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--hairline); }
+  .tl-tick-label {
+    position: absolute; bottom: -20px; transform: translateX(-50%); white-space: nowrap;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 9.5px; color: var(--muted);
+  }
+
+  .scrim { position: fixed; inset: 0; background: rgba(11,11,11,0.3); opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 40; }
+  .scrim.show { opacity: 1; pointer-events: auto; }
+  .panel {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(460px, 94vw); z-index: 50;
+    background: var(--surface); border-left: 1px solid var(--border); box-shadow: var(--shadow);
+    transform: translateX(103%); transition: transform 0.18s ease;
+    display: flex; flex-direction: column;
+  }
+  .panel.open { transform: translateX(0); }
+  .panel-head { padding: 18px 20px 12px; border-bottom: 1px solid var(--hairline); display: flex; align-items: flex-start; gap: 10px; }
+  .panel-head .grow { flex: 1; min-width: 0; }
+  .panel-head h2 { font-size: 16px; margin: 2px 0 1px; overflow-wrap: anywhere; }
+  .panel-sub { font-size: 12px; color: var(--muted); }
+  .iconbtn { border: 0; background: transparent; cursor: pointer; font-size: 17px; color: var(--muted); padding: 4px 8px; border-radius: 6px; }
+  .iconbtn:hover { color: var(--ink); background: var(--bg); }
+  .panel-body { flex: 1; overflow-y: auto; padding: 14px 20px 20px; }
+  .panel-progressline { font-size: 12px; color: var(--ink-2); margin-bottom: 12px; }
+  .mini-meter { height: 6px; border-radius: 3px; margin: 6px 0 16px; overflow: hidden; display: flex; }
+  .task { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--hairline); font-size: 13px; }
+  .task:last-child { border-bottom: 0; }
+  .task .glyph { flex: none; width: 17px; text-align: center; font-size: 13px; line-height: 1.4; }
+  .task .t-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .task .t-meta { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
+  .task .t-notes { flex: none; font-size: 11px; color: var(--muted); }
+  .ownchip {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 9.5px; padding: 1px 6px;
+    border-radius: 4px; background: var(--bg); border: 1px solid var(--hairline); color: var(--ink-2);
+  }
+  .pctchip {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 9.5px; padding: 1px 6px;
+    border-radius: 4px; border: 1px solid var(--hairline); color: var(--muted);
+  }
+  .notes-h { font-size: 12px; font-weight: 600; margin: 20px 0 8px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.05em; }
+  .note { background: var(--bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 9px 12px; margin-bottom: 8px; font-size: 12.5px; }
+  .note .n-meta { display: flex; gap: 8px; align-items: baseline; color: var(--muted); font-size: 10.5px; margin-bottom: 3px; flex-wrap: wrap; }
+  .note .n-task { color: var(--accent); }
+  .note .n-body { white-space: pre-wrap; overflow-wrap: break-word; }
+  .note .n-atts { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .note .n-att {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10.5px; color: var(--ink-2);
+    border: 1px solid var(--hairline); border-radius: 6px; padding: 2px 7px; background: var(--surface);
+  }
+  .statuschip { font-weight: 500; padding: 1px 7px; border-radius: 8px; font-size: 10px; }
+  .flag { color: var(--serious); font-weight: 500; }
+  .flag.quiet { color: var(--muted); font-weight: 400; }
+  .lognote-phase {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 9.5px; padding: 1px 6px;
+    border-radius: 4px; background: var(--bg); border: 1px solid var(--hairline); color: var(--ink-2);
+  }
+  .empty { color: var(--muted); font-size: 12.5px; font-style: italic; padding: 6px 0; }
+  footer.foot { margin-top: 26px; font-size: 11.5px; color: var(--muted); line-height: 1.6; max-width: 76ch; }
+
+  @media (prefers-reduced-motion: reduce) { .card, .panel, .scrim { transition: none; } }
+  @media (max-width: 940px) { .boardrow { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) { .wrap { padding: 18px 16px 32px; } .controls { margin-left: 0; } }
+</style>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="ident">
+      <span class="eyebrow">Ringboard &middot; read-only snapshot</span>
+      <h1 id="boardTitle">Ringboard</h1>
+      <div class="snapline">__PLAN__ + NOTES.md as of <span class="mono">__SNAP__</span></div>
+    </div>
+    <div class="stats">
+      <div class="hero">
+        <div class="val" id="heroPct">–</div>
+        <div class="stat-label">overall, task-weighted</div>
+      </div>
+      <div class="tile" id="daysTile" hidden>
+        <div class="val mono" id="daysLeft">–</div>
+        <div class="stat-label" id="daysLabel">days to deadline</div>
+      </div>
+      <div class="tile" id="tickTile" hidden>
+        <div class="val mono" id="tickVal">–</div>
+        <div class="stat-label" id="tickLabel">next milestone</div>
+      </div>
+      <div class="tile">
+        <div class="val alert" id="blockerCount">–</div>
+        <div class="stat-label">active blockers</div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Ring color meaning">
+        <button id="modeCompletion" aria-pressed="false">Completion</button>
+        <button id="modeHealth" aria-pressed="true">Schedule health</button>
+      </div>
+      <button class="btn" id="logBtn">Notes log<span class="badge" id="noteCount">0</span></button>
+    </div>
+  </header>
+
+  <div class="boardrow">
+    <section class="rings" id="rings" aria-label="Progress rings"></section>
+    <aside class="nextup" aria-label="Next task on deck per owner">
+      <h2>On deck</h2>
+      <div class="nu-sub" id="nextupSub">next task per owner, in plan order</div>
+      <div id="nextupBody"></div>
+    </aside>
+  </div>
+
+  <section class="tl-section" id="tlSection">
+    <h2 id="tlTitle">Phase windows</h2>
+    <div class="tl" id="timeline"></div>
+  </section>
+
+  <footer class="foot">
+    Read-only snapshot of the local project Ringboard, generated <span class="mono">__SNAP__</span>
+    from <span class="mono">__PLAN__</span> and <span class="mono">NOTES.md</span>. The live board
+    (with note logging and attachments) runs locally in the project workspace; note attachments
+    stay in the repo and are listed here by name only. Rings with nested subtasks drill down in
+    place — use the breadcrumb to climb back. Ask the project lead for a refreshed snapshot.
+  </footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="panel" id="panel" aria-label="Detail panel">
+  <div class="panel-head">
+    <div class="grow" id="panelHead"></div>
+    <button class="iconbtn" id="closeBtn" aria-label="Close panel">&times;</button>
+  </div>
+  <div class="panel-body" id="panelBody"></div>
+</aside>
+
+<script>
+"use strict";
+const STATE = __STATE__;
+const $ = (id) => document.getElementById(id);
+let mode = "health";     // default ring coloring: schedule health
+let view = [];           // [] = phases; else path to the node whose children are ringed
+let openPath = null;     // null | "log" | path array [phaseId, idx, ...]
+
+// ---------- node helpers ----------
+function phaseById(pid) { return STATE.phases.find(p => p.id === pid); }
+function kidsOf(node) { return node ? (node.tasks || node.c || []) : STATE.phases; }
+function nodeAt(path) {
+  if (!path || !path.length) return null;
+  let node = phaseById(path[0]);
+  for (let d = 1; node && d < path.length; d++) node = kidsOf(node)[path[d]];
+  return node || null;
+}
+function hasGrandkids(node) { return kidsOf(node).some(k => kidsOf(k).length); }
+function isPhase(node) { return !!node && node.tasks !== undefined; }
+function pathsEqual(a, b) { return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => v === b[i]); }
+function prefixMatch(p, prefix) { return Array.isArray(p) && prefix.every((v, i) => p[i] === v); }
+function trunc(s, n) { return s.length > n ? s.slice(0, n - 1) + "…" : s; }
+
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function hexRgb(h) { h = h.replace("#", ""); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
+function rgbHex(r) { return "#" + r.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0")).join(""); }
+function mixHex(a, b, t) { const A = hexRgb(a), B = hexRgb(b); return rgbHex(A.map((v, i) => v + (B[i] - v) * t)); }
+function esc(s) { return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function escA(s) { return esc(s).replace(/"/g, "&quot;"); }
+// Newest first: ids are unordered hash tokens, so sort by timestamp, then file order.
+function noteOrder(a, b) { return (b.ts || "").localeCompare(a.ts || "") || (b.seq ?? 0) - (a.seq ?? 0); }
+function completionColor(frac) {
+  const stops = [[0, cssVar("--blue")], [0.6, cssVar("--aqua")], [1, cssVar("--green")]];
+  for (let i = 1; i < stops.length; i++) {
+    if (frac <= stops[i][0]) {
+      const t = (frac - stops[i - 1][0]) / (stops[i][0] - stops[i - 1][0]);
+      return mixHex(stops[i - 1][1], stops[i][1], t);
+    }
+  }
+  return stops[stops.length - 1][1];
+}
+function leafFrac(s) { return s === "done" ? 1 : s === "prog" ? 0.5 : 0; }
+function nodeStats(node) {
+  const kids = kidsOf(node);
+  if (!kids.length) {
+    const f = leafFrac(node.s);
+    return { done: f >= 0.999 ? 1 : 0, prog: f > 0 && f < 0.999 ? 1 : 0, total: 1, frac: f,
+             doneArc: f >= 0.999 ? 1 : 0, progArc: f > 0 && f < 0.999 ? f : 0, leaf: true };
+  }
+  let done = 0, prog = 0, sum = 0, progArc = 0;
+  for (const k of kids) {
+    const f = nodeStats(k).frac;
+    sum += f;
+    if (f >= 0.999) done++; else if (f > 0) { prog++; progArc += f; }
+  }
+  return { done, prog, total: kids.length, frac: sum / kids.length,
+           doneArc: done / kids.length, progArc: progArc / kids.length, leaf: false };
+}
+function nodeBlocked(node) { return !!node.blocker || node.s === "blocked" || kidsOf(node).some(nodeBlocked); }
+function nodeGate(node) { return !!node.gate || kidsOf(node).some(nodeGate); }
+function allLeaves(node, out) {
+  const kids = kidsOf(node);
+  if (!kids.length) out.push(node); else kids.forEach(k => allLeaves(k, out));
+  return out;
+}
+function healthOf(p, st) {
+  const now = new Date();
+  if (st.frac >= 0.999) return { key: "done", label: "Complete", color: cssVar("--green") };
+  if (!p.start || !p.end) return { key: "nowin", label: "No window", color: mixHex(cssVar("--blue"), cssVar("--muted"), 0.55) };
+  const s = new Date(p.start + "T00:00"), e = new Date(p.end + "T23:59");
+  if (now > e) return { key: "overdue", label: "Overdue", color: cssVar("--crit") };
+  if (now < s) return { key: "upcoming", label: "Upcoming", color: mixHex(cssVar("--blue"), cssVar("--muted"), 0.55) };
+  const ratio = st.frac / Math.max((now - s) / (e - s), 0.001);
+  if (ratio >= 0.75) return { key: "ontrack", label: "On track", color: cssVar("--green") };
+  if (ratio >= 0.45) return { key: "watch", label: "Watch", color: cssVar("--warn") };
+  return { key: "behind", label: "Behind", color: cssVar("--serious") };
+}
+function ringColor(p, st) { return (mode === "health") ? healthOf(p, st).color : completionColor(st.frac); }
+function fmtD(d) { return new Date(d + "T00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }); }
+function fmtDates(p) { return (p.start && p.end) ? fmtD(p.start) + " – " + fmtD(p.end) : ""; }
+function noteTaskPathOf(n) { return n.task_path || (n.task_index != null ? [n.task_index] : null); }
+
+// ---------- navigation (in-memory; breadcrumb climbs back) ----------
+function nav(path) { view = path; closePanel(true); renderAll(); }
+
+// ---------- header ----------
+function renderHeader() {
+  renderCrumb();
+  let total = 0, sum = 0, blockers = 0;
+  STATE.phases.forEach(p => {
+    p.tasks.forEach(t => allLeaves(t, []).forEach(l => { total++; sum += leafFrac(l.s); }));
+    if (nodeBlocked(p)) blockers++;
+  });
+  $("heroPct").textContent = total ? Math.round(sum / total * 100) + "%" : "–";
+  $("blockerCount").textContent = blockers;
+  if (STATE.deadline) {
+    $("daysTile").hidden = false;
+    $("daysLeft").textContent = Math.max(Math.ceil((new Date(STATE.deadline + "T23:59") - new Date()) / 86400000), 0);
+    $("daysLabel").textContent = "days to deadline (" + fmtD(STATE.deadline) + ")";
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  const next = (STATE.ticks || []).filter(t => t.d >= today).sort((a, b) => a.d.localeCompare(b.d))[0];
+  if (next) {
+    $("tickTile").hidden = false;
+    $("tickVal").textContent = fmtD(next.d);
+    $("tickLabel").textContent = "next: " + next.label;
+  }
+  $("noteCount").textContent = STATE.notes.length;
+}
+function renderCrumb() {
+  const el = $("boardTitle");
+  if (!view.length) { el.textContent = STATE.title; return; }
+  let html = `<button class="crumb" data-nav="">${esc(STATE.title)}</button>`;
+  for (let d = 1; d <= view.length; d++) {
+    const sub = view.slice(0, d), n = nodeAt(sub);
+    const label = d === 1 ? `Phase ${sub[0]} — ${n.name}` : trunc(n.t, 40);
+    html += `<span class="crumb-sep">›</span>`;
+    html += d === view.length
+      ? `<span class="crumb-cur">${esc(label)}</span>`
+      : `<button class="crumb" data-nav="${sub.join(".")}">${esc(label)}</button>`;
+  }
+  el.innerHTML = html;
+  el.querySelectorAll("[data-nav]").forEach(b => b.addEventListener("click", () =>
+    nav(b.dataset.nav === "" ? [] : b.dataset.nav.split(".").map(Number))));
+}
+
+// ---------- rings ----------
+function currentChildren() {
+  if (!view.length) return STATE.phases.map(p => ({ node: p, path: [p.id] }));
+  return kidsOf(nodeAt(view)).map((k, i) => ({ node: k, path: [...view, i] }));
+}
+function cardNum(path) {
+  return path.length === 1 ? "Phase " + path[0]
+       : "P" + path[0] + " · " + path.slice(1).map(i => i + 1).join(".");
+}
+function ringSVG(st, col) {
+  const R = 50;
+  const track = `color-mix(in oklab, ${col} 15%, var(--surface))`;
+  const gap = (st.doneArc > 0 && st.progArc > 0) ? 1.2 : 0;
+  const seg = (startPct, lenPct, opacity) => {
+    if (lenPct <= 0) return "";
+    return `<circle cx="58" cy="58" r="${R}" fill="none" pathLength="100"
+      stroke="${col}" stroke-opacity="${opacity}" stroke-width="13"
+      stroke-dasharray="${Math.max(lenPct, 0.5)} ${100 - Math.max(lenPct, 0.5)}"
+      stroke-dashoffset="${-startPct}"></circle>`;
+  };
+  return `<svg viewBox="0 0 116 116" role="img" aria-label="${Math.round(st.frac * 100)}% complete">
+    <g transform="rotate(-90 58 58)">
+      <circle cx="58" cy="58" r="${R}" fill="none" stroke="${track}" stroke-width="13"></circle>
+      ${seg(0, st.doneArc * 100 - gap, 1)}${seg(st.doneArc * 100 + gap * 0.5, st.progArc * 100 - gap * 0.5, 0.38)}
+    </g></svg>`;
+}
+function renderRings() {
+  $("rings").innerHTML = currentChildren().map(({ node, path }) => {
+    const st = nodeStats(node), col = ringColor(node, st), h = healthOf(node, st);
+    const drill = hasGrandkids(node);
+    let chips = "";
+    if (mode === "health") chips += `<span class="chip health" style="color:${h.color};background:color-mix(in oklab, ${h.color} 12%, var(--surface))">${h.label}</span>`;
+    if (nodeGate(node)) chips += `<span class="chip gate">gate</span>`;
+    if (nodeBlocked(node)) chips += `<span class="chip blocked" title="${escA(node.blocker || "has blocked items")}">blocked</span>`;
+    const name = node.name || node.t, dates = fmtDates(node);
+    const active = Array.isArray(openPath) && pathsEqual(openPath, path);
+    return `<button class="card${active ? " active" : ""}" data-path="${path.join(".")}"
+      title="${escA(name)}" aria-label="${escA(cardNum(path))}: ${escA(name)}, ${Math.round(st.frac * 100)}% complete${drill ? ", opens nested board" : ""}">
+      <div class="ringwrap">${ringSVG(st, col)}
+        <div class="ringcenter"><span class="pct">${Math.round(st.frac * 100)}%</span>
+        <span class="frac mono">${st.done + (st.prog ? "+" + st.prog + "◐" : "")}/${st.total}</span>
+        ${drill ? `<span class="drill">⌄ drill</span>` : ""}</div>
+      </div>
+      <span class="pnum">${esc(cardNum(path))}</span>
+      <span class="pname">${esc(name)}</span>
+      ${dates ? `<span class="pdates">${dates}</span>` : ""}
+      <div class="chiprow">${chips}</div>
+    </button>`;
+  }).join("");
+  document.querySelectorAll(".card").forEach(c => c.addEventListener("click", () => {
+    const path = c.dataset.path.split(".").map(Number);
+    if (hasGrandkids(nodeAt(path))) nav(path); else openPanelAt(path);
+  }));
+}
+
+// ---------- on deck ----------
+function nextUpItems() {
+  const byOwner = new Map();
+  const walk = (node, path) => {
+    const cls = node.s === "prog" ? "prog" : node.s === "open" ? "open" : node.s === "blocked" ? "blocked" : null;
+    if (cls) (node.o || []).forEach(o => {
+      if (!byOwner.has(o)) byOwner.set(o, { prog: [], open: [], blocked: [] });
+      byOwner.get(o)[cls].push({ node, path });
+    });
+    kidsOf(node).forEach((k, i) => walk(k, [...path, i]));
+  };
+  if (view.length) kidsOf(nodeAt(view)).forEach((k, i) => walk(k, [...view, i]));
+  else STATE.phases.forEach(p => p.tasks.forEach((t, i) => walk(t, [p.id, i])));
+  // Descend into the same owner's unfinished subtasks, preferring in-progress > open > blocked.
+  const refine = (owner, cur) => {
+    for (;;) {
+      const kids = kidsOf(cur.node).map((k, i) => ({ k, i }))
+        .filter(x => (x.k.o || []).includes(owner) && nodeStats(x.k).frac < 0.999);
+      if (!kids.length) return cur;
+      const pick = kids.find(x => x.k.s === "prog") || kids.find(x => x.k.s === "open") || kids[0];
+      cur = { node: pick.k, path: [...cur.path, pick.i] };
+    }
+  };
+  const items = [];
+  for (const [owner, c] of byOwner) {
+    // Plan-order candidates; skip ones that resolve to blocked work when an actionable one follows.
+    const ordered = [...c.prog, ...c.open, ...c.blocked];
+    if (!ordered.length) continue;
+    let chosen = null;
+    for (const cand of ordered) {
+      const r = refine(owner, cand);
+      if (r.node.s !== "blocked") { chosen = r; break; }
+      if (!chosen) chosen = r;   // all-blocked fallback: show the first one
+    }
+    items.push({ owner, node: chosen.node, path: chosen.path });
+  }
+  return items;
+}
+function renderNextUp() {
+  const items = nextUpItems();
+  $("nextupSub").textContent = view.length ? "next task per owner, within this level" : "next task per owner, in plan order";
+  if (!items.length) {
+    $("nextupBody").innerHTML = `<div class="empty">Nothing on deck — no unfinished tasks with owner chips here.</div>`;
+    return;
+  }
+  $("nextupBody").innerHTML = items.map(it => {
+    const g = GLYPHS[it.node.s] || GLYPHS.open;
+    const ph = phaseById(it.path[0]);
+    const ctx = "P" + it.path[0] + (ph ? " · " + trunc(ph.name, 30) : "");
+    return `<div class="nu-row" data-path="${it.path.join(".")}" role="button" tabindex="0"
+      title="${escA(it.node.t)}" aria-label="Next up for ${escA(it.owner)}: ${escA(it.node.t)}">
+      <span class="nu-own">${esc(it.owner)}</span>
+      <div class="nu-main">
+        <div class="nu-text"><span class="glyph" style="color:var(${g[1]})">${g[0]}</span> ${esc(it.node.t)}</div>
+        <div class="nu-ctx">${esc(ctx)}${it.node.s === "blocked" ? " · blocked" : ""}</div>
+      </div>
+    </div>`;
+  }).join("");
+  document.querySelectorAll(".nu-row").forEach(r => {
+    const openFn = () => { const p = r.dataset.path.split(".").map(Number); openPanelAt(p.slice(0, -1)); };
+    r.addEventListener("click", openFn);
+    r.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openFn(); } });
+  });
+}
+
+// ---------- timeline ----------
+function renderTimeline() {
+  const kids = currentChildren();
+  const withWin = kids.filter(k => k.node.start && k.node.end);
+  const isRoot = !view.length;
+  if (!isRoot && !withWin.length) { $("tlSection").hidden = true; return; }
+  $("tlSection").hidden = false;
+  $("tlTitle").textContent = isRoot ? "Phase windows" : "Windows at this level";
+  const starts = withWin.map(k => +new Date(k.node.start + "T00:00"));
+  const ends = withWin.map(k => +new Date(k.node.end + "T23:59"));
+  if (isRoot && STATE.deadline) ends.push(+new Date(STATE.deadline + "T23:59"));
+  if (!starts.length || !ends.length) {
+    $("timeline").innerHTML = `<div class="empty">No phase windows.</div>`;
+    return;
+  }
+  const R = { start: Math.min(...starts), end: Math.max(...ends) };
+  const pct = (t) => Math.max(0, Math.min(100, (t - R.start) / (R.end - R.start) * 100));
+  const rows = kids.map(({ node, path }) => {
+    const st = nodeStats(node), col = ringColor(node, st);
+    const label = isRoot ? "P" + path[0] : path.slice(1).map(i => i + 1).join(".");
+    let bar = "";
+    if (node.start && node.end) {
+      const l = pct(+new Date(node.start + "T00:00")), r = pct(+new Date(node.end + "T23:59"));
+      bar = `<div class="tl-bar" style="left:${l}%;width:${r - l}%;background:color-mix(in oklab, ${col} 70%, var(--surface))"
+        title="${escA(cardNum(path))}: ${escA(node.name || node.t)} (${fmtDates(node)})"></div>`;
+    }
+    return `<div class="tl-row"><span class="tl-label">${esc(label)}</span><div class="tl-track">${bar}</div></div>`;
+  }).join("");
+  const ticks = isRoot ? (STATE.ticks || []).map(t =>
+    `<div class="tl-tick" style="left:${pct(+new Date(t.d + "T12:00"))}%"></div>
+     <span class="tl-tick-label" style="left:${pct(+new Date(t.d + "T12:00"))}%">${esc(t.label)}</span>`).join("") : "";
+  $("timeline").innerHTML = rows +
+    `<div class="tl-grid">${ticks}<div class="tl-today" style="left:${pct(Date.now())}%"></div>
+     <span class="tl-today-label" style="left:${pct(Date.now())}%">today</span></div>`;
+}
+
+// ---------- panel ----------
+const GLYPHS = { done: ["✓", "--green"], prog: ["◐", "--blue"], open: ["○", "--muted"], blocked: ["!", "--crit"] };
+const NSTATUS = { open: "--accent", addressed: "--aqua", responded: "--green", closed: "--muted" };
+
+function openPanelAt(path) {
+  openPath = path;
+  renderPanel(); renderRings();
+  $("panel").classList.add("open");
+  $("scrim").classList.add("show");
+}
+function closePanel(soft) {
+  openPath = null;
+  $("panel").classList.remove("open");
+  $("scrim").classList.remove("show");
+  if (!soft) renderRings();
+}
+function noteHTML(n, showPhase) {
+  const stCol = `var(${NSTATUS[n.status] || "--muted"})`;
+  const phaseChip = showPhase
+    ? `<span class="lognote-phase">${n.phase === null ? "General" : "P" + n.phase}</span>` : "";
+  const taskRef = n.task_ref ? `<span class="n-task" title="${escA(n.task_ref)}">↳ ${esc(n.task_ref.slice(0, 40))}${n.task_ref.length > 40 ? "…" : ""}</span>` : "";
+  const flag = n.needs_response
+    ? `<span class="flag${n.status === "open" ? "" : " quiet"}">⚑ response requested</span>` : "";
+  const atts = n.attachments.length
+    ? `<div class="n-atts">${n.attachments.map(a =>
+        `<span class="n-att" title="Stored in the project repo (not included in this snapshot)">📎 ${esc(a.split("/").pop())}</span>`).join("")}</div>` : "";
+  return `<div class="note"><div class="n-meta">${phaseChip}<span class="mono">${esc(n.ts)}</span>
+    <span class="statuschip" style="color:${stCol};background:color-mix(in oklab, ${stCol} 12%, var(--surface))">${n.status}</span>
+    ${flag}${taskRef}</div>
+    <div class="n-body">${esc(n.text)}</div>${atts}</div>`;
+}
+function renderPanel() {
+  if (openPath === "log") return renderLogPanel();
+  const node = nodeAt(openPath);
+  if (!node) { closePanel(); return; }
+  const pid = openPath[0], phase = phaseById(pid), withinPhase = openPath.slice(1);
+  const st = nodeStats(node), col = ringColor(node, st), h = healthOf(node, st);
+  const eyebrow = isPhase(node)
+    ? `Phase ${pid}${fmtDates(node) ? " &middot; " + fmtDates(node) : ""}`
+    : `Phase ${pid} &middot; ${esc(trunc(phase.name, 40))}${fmtDates(node) ? " &middot; " + fmtDates(node) : ""}`;
+  $("panelHead").innerHTML = `<span class="eyebrow">${eyebrow}</span>
+    <h2>${esc(node.name || node.t)}</h2>
+    <span class="panel-sub">${Math.round(st.frac * 100)}% &middot; ${st.done} done, ${st.prog} in progress, ${st.total - st.done - st.prog} open &middot; ${h.label.toLowerCase()}</span>`;
+  let body = `<div class="mini-meter" style="background:color-mix(in oklab, ${col} 15%, var(--surface))">
+    <div style="width:${st.doneArc * 100}%;background:${col}"></div>
+    <div style="width:${st.progArc * 100}%;background:${col};opacity:.38"></div></div>`;
+  if (node.blocker) body += `<div class="panel-progressline" style="color:var(--crit)">⚠ Blocked: ${esc(node.blocker)}</div>`;
+  if (node.desc) body += `<div class="panel-progressline">${esc(node.desc)}</div>`;
+  const kids = kidsOf(node);
+  const rows = kids.length
+    ? kids.map((t, i) => ({ t, wp: [...withinPhase, i] }))
+    : [{ t: node, wp: withinPhase }];
+  body += rows.map(r => {
+    const g = GLYPHS[r.t.s] || GLYPHS.open;
+    const rst = nodeStats(r.t);
+    let meta = (r.t.o || []).map(o => `<span class="ownchip">${o}</span>`).join("");
+    if (nodeGate(r.t)) meta += `<span class="chip gate">gate</span>`;
+    if (!rst.leaf) meta += `<span class="pctchip">${Math.round(rst.frac * 100)}% · ${kidsOf(r.t).length} subtasks</span>`;
+    const nCount = STATE.notes.filter(x => {
+      const tp = noteTaskPathOf(x);
+      return x.phase === pid && tp && r.wp.length && prefixMatch(tp, r.wp);
+    }).length;
+    return `<div class="task">
+      <span class="glyph" style="color:var(${g[1]})">${g[0]}</span>
+      <span class="t-text">${esc(r.t.t)}<span class="t-meta">${meta}</span></span>
+      ${nCount ? `<span class="t-notes">✎ ${nCount}</span>` : ""}
+    </div>`;
+  }).join("");
+  const pn = STATE.notes.filter(n => {
+    if (n.phase !== pid) return false;
+    if (!withinPhase.length) return true;
+    const tp = noteTaskPathOf(n);
+    return tp && prefixMatch(tp, withinPhase);
+  }).sort(noteOrder);
+  body += `<div class="notes-h">${isPhase(node) ? "Notes on this phase" : "Notes on this item"} (${pn.length})</div>`;
+  body += pn.length ? pn.map(n => noteHTML(n, false)).join("") : `<div class="empty">No notes.</div>`;
+  $("panelBody").innerHTML = body;
+}
+function renderLogPanel() {
+  $("panelHead").innerHTML = `<span class="eyebrow">All phases &middot; NOTES.md</span><h2>Notes log</h2>
+    <span class="panel-sub">user ↔ agents; statuses: open → addressed/responded (agent) → closed (user)</span>`;
+  const list = [...STATE.notes].sort(noteOrder);
+  $("panelBody").innerHTML = list.length
+    ? list.map(n => noteHTML(n, true)).join("")
+    : `<div class="empty">No notes logged.</div>`;
+}
+
+function setMode(m) {
+  mode = m;
+  $("modeCompletion").setAttribute("aria-pressed", m === "completion");
+  $("modeHealth").setAttribute("aria-pressed", m === "health");
+  renderRings(); renderNextUp(); renderTimeline();
+  if (Array.isArray(openPath)) renderPanel();
+}
+$("modeCompletion").addEventListener("click", () => setMode("completion"));
+$("modeHealth").addEventListener("click", () => setMode("health"));
+$("logBtn").addEventListener("click", () => {
+  openPath = "log"; renderLogPanel(); renderRings();
+  $("panel").classList.add("open"); $("scrim").classList.add("show");
+});
+$("closeBtn").addEventListener("click", () => closePanel(false));
+$("scrim").addEventListener("click", () => closePanel(false));
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (openPath !== null) closePanel(false);
+  else if (view.length) nav(view.slice(0, -1));
+});
+function renderAll() { renderHeader(); renderRings(); renderNextUp(); renderTimeline(); if (openPath !== null) renderPanel(); }
+try {
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll);
+  new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+} catch (e) {}
+renderAll();
+</script>
