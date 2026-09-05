@@ -115,11 +115,11 @@ National Forest — USFS land, so MVUM coverage is likely).
 <!-- ringboard: window=2026-09-05..2026-09-19 -->
 Prove the data story on the first target trail before committing to architecture.
 
-- [ ] [C] Geocode and disambiguate Bunce School Road (Roosevelt NF, near Allenspark)
-- [ ] [C] Pull route geometry from USFS MVUM and OSM Overpass; compare the two
-- [ ] [C] Pull 3DEP DEM for the trail corridor; verify resolution and coverage
-- [ ] [C] Pull NAIP imagery for the corridor
-- [ ] [C] Write data quality report: gaps, resolution, alignment between sources
+- [x] [C] Geocode and disambiguate Bunce School Road (Roosevelt NF, near Allenspark)
+- [x] [C] Pull route geometry from USFS MVUM and OSM Overpass; compare the two
+- [x] [C] Pull 3DEP DEM for the trail corridor; verify resolution and coverage
+- [x] [C] Pull NAIP imagery for the corridor
+- [x] [C] Write data quality report: gaps, resolution, alignment between sources
 - [ ] [L] [C] GATE — go/no-go on stack and architecture (major decision point)
 
 ## Phase 1 — Terrain flythrough (v1)

@@ -1,0 +1,13 @@
+{
+  "osm_length_m": 8280.9,
+  "mvum_length_m": 4480.1,
+  "osm_ways": 2,
+  "mvum_segments": 6,
+  "samples": 136,
+  "offset_m": {
+    "mean": 107.93,
+    "median": 6.88,
+    "p95": 539.57,
+    "max": 689.23
+  }
+}

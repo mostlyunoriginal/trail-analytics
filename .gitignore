@@ -1,0 +1,6 @@
+# Bulky re-pullable rasters stay local (the pipeline can re-fetch them);
+# vectors, derived stats, and reports are committed.
+data/**/*.tif
+data/**/*.png
+data/**/*.laz
+NoteAttachments/

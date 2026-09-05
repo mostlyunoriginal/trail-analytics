@@ -10,3 +10,16 @@
 > delete entries; this file is an audit trail. Attachments live in `NoteAttachments/`.
 
 ---
+
+## N0bd93a8 — 2026-09-05 13:12 — Phase 0
+- status: addressed
+- response-requested: no
+- task-index: 5
+- re: "GATE — go/no-go on stack and architecture (major decision point)"
+
+let's go!
+
+**Action (Claude, 2026-09-05):** Ran the full Phase 0 spike. All five data tasks done and
+checked off; findings + GO recommendation in `data/bunce-school-road/spike-report.md`.
+The gate itself (task 5) awaits the user's call.
+
