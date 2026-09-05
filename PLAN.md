@@ -120,19 +120,19 @@ Prove the data story on the first target trail before committing to architecture
 - [x] [C] Pull 3DEP DEM for the trail corridor; verify resolution and coverage
 - [x] [C] Pull NAIP imagery for the corridor
 - [x] [C] Write data quality report: gaps, resolution, alignment between sources
-- [ ] [L] [C] GATE — go/no-go on stack and architecture (major decision point)
+- [x] [L] [C] GATE — go/no-go on stack and architecture (major decision point) — **GO, 2026-09-05:** Python pipeline + per-trail cache + CesiumJS static viewer; OSM centerline, MVUM overlay
 
 ## Phase 1 — Terrain flythrough (v1)
 <!-- ringboard: window=2026-09-20..2026-11-30 -->
 Trail name in → CesiumJS flythrough in the browser.
 
-- [ ] [C] Deterministic data pipeline
-  - [ ] DEM → terrain for Cesium
-  - [ ] NAIP imagery draping
-  - [ ] Trail line geometry from MVUM/OSM
-  - [ ] Per-trail cache layout (directory per trail slug)
-- [ ] [C] Viewer: scrub along trail, perspective controls, layer toggles
-- [ ] [C] Elevation/grade profile and per-segment stats
+- [x] [C] Deterministic data pipeline
+  - [x] DEM → terrain for Cesium (2m heightfield + self-validation vs identify service)
+  - [x] NAIP imagery draping (live USGSNAIPPlus provider in viewer)
+  - [x] Trail line geometry from MVUM/OSM
+  - [x] Per-trail cache layout (directory per trail slug)
+- [~] [C] Viewer: scrub along trail, perspective controls, layer toggles (built; awaiting first visual check)
+- [x] [C] Elevation/grade profile and per-segment stats
 - [ ] [L] Field-check the flythrough against real knowledge of the trail
 
 ## Phase 2 — Anchored media + data-gap reports (v2)

@@ -1,0 +1,32 @@
+html, body { margin: 0; height: 100%; background: #0b0e12; font: 13px/1.4 system-ui, sans-serif; }
+#cesium { position: absolute; inset: 0 0 170px 0; }
+
+#hud {
+  position: absolute; top: 10px; left: 12px; z-index: 5;
+  background: rgba(12, 16, 22, 0.78); color: #e8edf3;
+  border: 1px solid #2a3442; border-radius: 8px; padding: 8px 12px;
+  display: flex; gap: 16px; align-items: baseline;
+}
+#trailName { font-weight: 600; }
+#hud .stat { color: #9fb3c8; }
+#hud .stat span { color: #e8edf3; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+#panel {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 170px; z-index: 5;
+  background: #10151c; color: #cfd8e3; border-top: 1px solid #263140;
+  padding: 6px 12px 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px;
+}
+#panel .row { display: flex; align-items: center; gap: 12px; }
+#panel .row.small { font-size: 12px; color: #9fb3c8; }
+#panel label { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+#scrub { flex: 1; }
+#play {
+  width: 30px; height: 24px; background: #1c2531; color: #e8edf3;
+  border: 1px solid #334052; border-radius: 5px; cursor: pointer;
+}
+#play:hover { background: #263140; }
+#legend { margin-left: auto; }
+#legend i { display: inline-block; width: 12px; height: 8px; border-radius: 2px; margin: 0 2px 0 8px; }
+#profile { width: 100%; height: 96px; cursor: crosshair; }
+select, input[type="range"] { accent-color: #4a90d9; }
+select { background: #1c2531; color: #e8edf3; border: 1px solid #334052; border-radius: 4px; }

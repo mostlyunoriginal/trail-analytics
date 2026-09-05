@@ -76,3 +76,8 @@ authentication. The one design consequence is the centerline/designation split n
   a parameter table/dict, never a hand-built query string).
 - The MVUM GeoJSON endpoint returns **lowercase** property keys (`id`, `name`); the JSON
   (`f=json`) endpoint uses uppercase. Case-sensitive consumers beware.
+- **`exportImage` silently expands a bbox whose degree aspect ratio doesn't match the
+  requested pixel size** (it never distorts pixels), misregistering the result against the
+  requested bbox — up to ±50m elevation error on steep ground in our case. Fix: uniform
+  square-in-degrees cells and a bbox snapped to them (`snap_bbox` in the pipeline), plus a
+  post-build validation against the point-identify service.
