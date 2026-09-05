@@ -131,7 +131,7 @@ Trail name in → CesiumJS flythrough in the browser.
   - [x] NAIP imagery draping (live USGSNAIPPlus provider in viewer)
   - [x] Trail line geometry from MVUM/OSM
   - [x] Per-trail cache layout (directory per trail slug)
-- [~] [C] Viewer: scrub along trail, perspective controls, layer toggles (built; awaiting first visual check)
+- [x] [C] Viewer: scrub along trail, perspective controls, layer toggles (visual check passed 2026-09-05)
 - [x] [C] Elevation/grade profile and per-segment stats
 - [ ] [L] Field-check the flythrough against real knowledge of the trail
 

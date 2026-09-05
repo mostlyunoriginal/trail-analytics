@@ -165,7 +165,9 @@ async function boot() {
     const p = at(d), ahead = at(Math.min(length, d + 80));
     const target = Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.z * ex + 6);
     const mode = ui.mode.value;
-    const heading = mode === "orbit" ? Cesium.Math.toRadians(+ui.heading.value) : bearing(p, ahead);
+    // Heading slider is a look offset from the direction of travel in every mode:
+    // 0 = forward, ±90 = out the side windows, ±180 = back down the trail.
+    const heading = bearing(p, ahead) + Cesium.Math.toRadians(+ui.heading.value);
     const pitch = mode === "top" ? Cesium.Math.toRadians(-88) : Cesium.Math.toRadians(-14);
     viewer.camera.lookAt(target, new Cesium.HeadingPitchRange(heading, pitch, +ui.range.value));
     ui.hudMile.textContent = (d / MI).toFixed(2);
@@ -176,7 +178,7 @@ async function boot() {
   };
 
   ui.scrub.addEventListener("input", () => { d = (+ui.scrub.value / 1000) * length; update(); });
-  ui.mode.addEventListener("change", () => { ui.heading.disabled = ui.mode.value !== "orbit"; update(); });
+  ui.mode.addEventListener("change", update);
   ui.heading.addEventListener("input", update);
   ui.range.addEventListener("input", update);
   ui.exagg.addEventListener("input", () => {
