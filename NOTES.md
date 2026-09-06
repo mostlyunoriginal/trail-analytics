@@ -45,7 +45,7 @@ log future enhancement: ability to toggle off right side pane
 now has an × close button, and a "media" checkbox in the layers row re-enables it.
 
 ## N67a5d85 — 2026-09-05 14:43 — Phase 1
-- status: open
+- status: addressed
 - response-requested: no
 - task-index: 1
 - re: "Viewer: scrub along trail, perspective controls, layer toggles (visual check passed 2026-0"
