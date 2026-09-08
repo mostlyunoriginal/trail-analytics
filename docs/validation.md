@@ -34,6 +34,14 @@ and official access determinations cannot be manufactured by software changes.
 
 The user approved deployment on 2026-09-08. The exact reviewed artifact was
 verified against its inventory and pushed to `gh-pages` in commit `197c883`.
-GitHub rejected Pages creation because this account's plan does not support
-private-repository Pages; activation awaits the owner's visibility change.
+After the owner made the repository public, GitHub Pages deployed that commit
+successfully with HTTPS enforced at
+https://mostlyunoriginal.github.io/trail-analytics/.
+
+Live deployment checks passed: 12 published files matched the reviewed artifact
+by SHA-256, including the viewer code, current pointer, release inventory,
+overview terrain, and a detail tile. Isolated Edge loaded the real map and all
+four route options; dated weather/snow rendered; shared views survived reload;
+desktop and 390px mobile screenshots were inspected. There were no application
+exceptions or failed project-site responses during the smoke test.
 The existing personal homepage has not been modified.

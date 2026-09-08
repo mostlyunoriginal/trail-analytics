@@ -34,13 +34,13 @@ The user approved `dist/astra-enhance/` on 2026-09-08. Its build ID is
 branch. Publishing these exact files avoids fetching or changing the reviewed
 terrain and condition snapshots during deployment.
 
-Pages should use **Deploy from a branch**, branch **gh-pages**, folder **/ (root)**.
+Pages uses **Deploy from a branch**, branch **gh-pages**, folder **/ (root)**.
 The artifact includes `.nojekyll`. The source code remains on `astra-enhance`;
 pushing source changes alone does not redeploy the site.
 
-GitHub initially rejected Pages creation because the account's plan does not
-support Pages from this private repository. Publishing is pending the owner's
-repository visibility change. The personal homepage remains independent.
+The owner made the repository public, and deployment completed on 2026-09-08
+with HTTPS enforced. GitHub reports deployment commit `197c883` as built.
+The personal homepage remains independent.
 
 For subsequent deployments:
 

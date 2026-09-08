@@ -2,6 +2,8 @@
 
 Personal tool for offroad trail modeling, analysis, and visualization.
 
+**[Open the live trail planner](https://mostlyunoriginal.github.io/trail-analytics/).**
+
 Give it a trail name; an agent gathers public data — USGS 3DEP elevation, NAIP aerial imagery,
 USFS MVUM / OpenStreetMap route geometry, trip reports and media — and builds an interactive 3D
 model of the trail, browsable in a web viewer: scrub along the route, change perspective, toggle
@@ -32,8 +34,8 @@ USGS product metadata, and agency document discovery, then rebuild.
 The viewer provides route summaries, access evidence, saved camera views,
 interactive elevation profiles, dated conditions, and a field plan with local
 notes and GPX export. See [the enhancement guide](docs/enhancement-guide.md) for
-controls, curation formats, and data limitations, and [the Pages assessment](docs/github-pages.md)
-for a static deployment preview.
+controls, curation formats, and data limitations, and [the Pages deployment guide](docs/github-pages.md)
+for publishing and rollback instructions.
 
 ## Verify
 

@@ -174,7 +174,7 @@ Trail name in → CesiumJS flythrough in the browser.
 - [x] [C] JavaScript/pipeline/browser verification and 12-point USGS registration check
 - [x] [C] Package static preview and verify project-path deployment readiness
 - [x] [L] Review the enhanced planner and approve publishing the prepared Pages artifact (2026-09-08)
-- [ ] [C] Publish the reviewed artifact to GitHub Pages and verify the live project URL
+- [x] [C] Publish the reviewed artifact to GitHub Pages and verify the live project URL (2026-09-08)
 
 ## Phase 3 — Obstacle inspection mode (v3)
 <!-- ringboard: window=2027-04-01..2027-06-30 -->
