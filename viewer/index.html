@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#102225" />
+    <title>Trail Analytics · Plan the next mile</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/cesium@1.130.0/Build/Cesium/Widgets/widgets.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#route">Skip to route controls</a>
+    <header class="masthead">
+      <div class="brand">
+        <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M3 26 14 6l5 9 3-5 8 16Z" fill="none" stroke="currentColor" stroke-width="2" />
+          <path d="m10 26 6-8 4 8" fill="none" stroke="currentColor" stroke-width="2" />
+        </svg>
+        <div><strong>TRAIL ANALYTICS</strong><span id="bundleName">Plan the next mile</span></div>
+      </div>
+      <div class="header-actions">
+        <button id="overview">Fit bundle</button><button id="share">Copy view link</button
+        ><button id="togglePanel" aria-expanded="true" aria-controls="sidebar">Hide planner</button>
+      </div>
+    </header>
+    <main id="workspace">
+      <section id="mapArea" aria-label="Interactive trail map">
+        <div id="cesium"></div>
+        <div class="map-hud">
+          <span id="hudMile">0.00 mi</span><span id="hudElev">— ft</span
+          ><span id="hudGrade">—% estimated grade</span>
+        </div>
+        <div id="mapNotice" class="map-notice">
+          Dashed amber boundary: downloaded terrain coverage
+        </div>
+        <div id="loading" role="status">
+          <strong>Preparing your trail</strong>
+          <p id="loadMessage">Loading route evidence…</p>
+          <progress id="loadProgress"></progress><button id="retry" hidden>Try again</button>
+        </div>
+      </section>
+      <aside id="sidebar" aria-label="Trip planner">
+        <nav class="tabs" aria-label="Planning panels">
+          <button data-tab="summary" aria-pressed="true">Overview</button
+          ><button data-tab="evidence" aria-pressed="false">Evidence</button
+          ><button data-tab="conditions" aria-pressed="false">Conditions</button
+          ><button data-tab="field" aria-pressed="false">Field plan</button>
+        </nav>
+        <div class="sidebar-body">
+          <section id="summary" class="tab-panel">
+            <p class="eyebrow">EXPLORE THE BUNDLE</p>
+            <label class="route-label" for="route">Selected route</label
+            ><select id="route"></select>
+            <div id="routeCard"></div>
+            <h3>Explore nearby</h3>
+            <div id="waypointList" class="waypoint-list"></div>
+            <details>
+              <summary>Saved views</summary>
+              <div class="inline">
+                <input
+                  id="bookmarkName"
+                  aria-label="Bookmark name"
+                  placeholder="Name this view"
+                  maxlength="80"
+                /><button id="bookmark">Save</button>
+              </div>
+              <div id="bookmarks"></div>
+            </details>
+          </section>
+          <section id="evidence" class="tab-panel" hidden>
+            <div class="section-heading">
+              <h2>Location evidence</h2>
+              <button id="pinMedia" aria-pressed="false">Pin card</button>
+            </div>
+            <p id="evidenceHint" class="muted">Select a waypoint or scrub nearby.</p>
+            <div id="mediaContent"></div>
+            <details open>
+              <summary>Data provenance</summary>
+              <div id="sourceDetails"></div>
+            </details>
+          </section>
+          <section id="conditions" class="tab-panel" hidden>
+            <h2>Plan for the day</h2>
+            <label for="tripDate">Trip date</label><input id="tripDate" type="date" /><button
+              id="refreshWeather"
+            >
+              Refresh weather
+            </button>
+            <p id="weatherStatus" class="muted" role="status"></p>
+            <div id="agencyNotices"></div>
+            <div id="weatherCards"></div>
+            <h3>Regional snow context</h3>
+            <p class="muted">Nearby station observations; conditions on the road may differ.</p>
+            <div id="snowCards"></div>
+          </section>
+          <section id="field" class="tab-panel" hidden>
+            <h2>Make the visit count</h2>
+            <p class="muted">
+              Ranked capture candidates. Estimates exclude driving and walking time.
+            </p>
+            <div class="inline">
+              <label
+                >Show
+                <select id="fieldFilter">
+                  <option value="route">Selected route</option>
+                  <option value="all">Whole bundle</option>
+                  <option value="pending">Pending across bundle</option>
+                </select></label
+              >
+            </div>
+            <div id="fieldTotals"></div>
+            <div class="inline">
+              <button id="exportGpx">Export GPX</button
+              ><button id="exportNotes">Back up notes</button
+              ><label class="button"
+                >Import notes<input
+                  type="file"
+                  id="importNotes"
+                  accept="application/json,.json"
+                  hidden
+              /></label>
+            </div>
+            <details>
+              <summary>Shared capture checklist</summary>
+              <ul>
+                <li>Confirm access and inspect the candidate’s actual location.</li>
+                <li>Slow overlapping orbits at waist, head, and overhead height.</li>
+                <li>Capture each driving line and a measured scale reference.</li>
+                <li>Lock exposure, enable location tagging, and record conditions.</li>
+              </ul>
+            </details>
+            <div id="captureList"></div>
+          </section>
+        </div>
+      </aside>
+    </main>
+    <section id="controls" aria-label="Trail exploration controls">
+      <div class="transport">
+        <button
+          id="previous"
+          title="Previous point of interest (P)"
+          aria-label="Previous point of interest"
+        >
+          ◀│</button
+        ><button id="play" aria-label="Play route" aria-pressed="false">Play</button
+        ><button id="next" title="Next point of interest (N)" aria-label="Next point of interest">
+          │▶</button
+        ><label class="sr-only" for="scrub">Distance along route</label
+        ><input id="scrub" type="range" min="0" max="1000" value="0" /><output id="distanceReadout"
+          >0.00 / 0.00 mi</output
+        >
+      </div>
+      <div class="control-row">
+        <label
+          >View
+          <select id="mode">
+            <option value="global">Explore freely</option>
+            <option value="follow">Follow route</option>
+            <option value="fixed">Fixed heading</option>
+            <option value="top">Top down</option>
+          </select></label
+        ><label
+          >Direction
+          <select id="direction">
+            <option value="1">Start → end</option>
+            <option value="-1">End → start</option>
+          </select></label
+        ><label
+          >Playback
+          <select id="speed">
+            <option value="2">2 mph</option>
+            <option value="5" selected>5 mph</option>
+            <option value="10">10 mph</option>
+            <option value="20">20 mph</option>
+            <option value="60">60 mph · preview</option>
+          </select></label
+        ><label
+          >Heading <input id="heading" type="range" min="-180" max="180" value="0" /><output
+            id="headingVal"
+            >0°</output
+          ></label
+        ><label
+          >Camera distance <input id="range" type="range" min="60" max="10000" value="500" /><output
+            id="rangeVal"
+            >500 m</output
+          ></label
+        ><label
+          >Terrain exaggeration
+          <input id="exagg" type="range" min="10" max="30" value="10" /><output id="exaggVal"
+            >1.0×</output
+          ></label
+        ><button id="reset">Reset view</button>
+      </div>
+      <div class="profile-wrap">
+        <canvas
+          id="profile"
+          tabindex="0"
+          role="slider"
+          aria-label="Elevation profile; left and right arrows move 10 metres"
+          aria-valuemin="0"
+          aria-valuemax="1000"
+          aria-valuenow="0"
+        ></canvas>
+        <div id="profileTooltip" hidden></div>
+      </div>
+      <div class="layer-row">
+        <label><input id="lyrNaip" type="checkbox" checked /> Aerial imagery</label
+        ><label><input id="lyrTrail" type="checkbox" checked /> Routes</label
+        ><label><input id="lyrMvum" type="checkbox" /> USFS designations</label
+        ><label><input id="lyrMarks" type="checkbox" checked /> Waypoints</label
+        ><label><input id="lyrAccess" type="checkbox" checked /> Access uncertainty</label
+        ><label><input id="rawProfile" type="checkbox" /> Raw elevation</label
+        ><span class="legend"
+          >Estimated grade: <i class="g0"></i>&lt;8% <i class="g1"></i>8–14%
+          <i class="g2"></i>14–20% <i class="g3"></i>≥20%</span
+        ><button id="helpToggle" aria-expanded="false" aria-controls="helpText">Help</button>
+      </div>
+      <p id="helpText" hidden>
+        Free view: drag to pan, wheel to zoom, Ctrl + drag to tilt. Profile: drag or use arrow keys.
+        Space: play/pause; N/P: next/previous point. Grade is a DEM estimate; red does not identify
+        a confirmed obstacle. Exaggeration changes the view, not the measurements.
+      </p>
+    </section>
+    <div id="toast" role="status" hidden></div>
+    <script>
+      window.CESIUM_BASE_URL = "https://cdn.jsdelivr.net/npm/cesium@1.130.0/Build/Cesium/";
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/cesium@1.130.0/Build/Cesium/Cesium.js"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
