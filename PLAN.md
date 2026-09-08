@@ -98,13 +98,26 @@ spending a trail day on it.
 **First target trail:** Bunce School Road, Colorado (near Allenspark/Peaceful Valley, Roosevelt
 National Forest — USFS land, so MVUM coverage is likely).
 
-## Open questions
+## Build and deployment decisions
 
-- Exact stack for the pipeline (Python for data pulls is the obvious default; `py3dep`,
-  `requests`/ArcGIS REST for MVUM, Overpass for OSM).
-- Where the per-trail cache lives (local directory per trail slug is probably enough).
-- Whether v1 serves static files or runs a small local server (Cesium works fine from static
-  hosting; a local server helps with tile proxying and API keys).
+### 2026-09-08 enhancement decisions
+
+- The `astra-enhance` branch adds a planning layer to the existing static Cesium
+  viewer. Access conflicts, uncertain connections, source age, and DEM limitations
+  remain visible rather than being interpreted as permissions or observations.
+- `tools/pipeline/enhance.py` is the supported build entry point. It defaults to
+  offline, publishes immutable releases via an atomic pointer, and serves a small
+  overview with detail tiles loaded on demand. `refresh_sources.py` owns public
+  network acquisition. Raw hashes and dependency versions identify each build.
+- Field status, notes, and saved views use browser storage with explicit export;
+  no backend is required. Pages is a viable deployment target under the existing
+  account's `/trail-analytics/` project path; publication is a subsequent step.
+- Detailed usage and remaining evidence limitations are in
+  `docs/enhancement-guide.md`; deployment preparation is in `docs/github-pages.md`.
+
+- Current stack: Python + NumPy/tifffile, per-trail raw caches, static Cesium viewer.
+- Deployment publication and any future native-DEM/obstacle reconstruction upgrades
+  remain separate decisions after review of the prepared static artifact.
 
 ---
 
@@ -148,6 +161,20 @@ Trail name in → CesiumJS flythrough in the browser.
 - [x] [C] Analysis overlays: grade coloring on trail line, steepest-segment callouts
 - [x] [C] Multi-route trail bundles: trail.json manifest, per-route profiles/analysis, viewer route selector (Bunce + Ironclads ×2 + T-33)
 - [ ] [L] Review gap report (`data/bunce-school-road/gap-report.md`) and plan the first capture visit
+
+## Phase 2a — Planning enhancements (astra-enhance)
+<!-- ringboard: window=2026-09-08..2026-09-08 -->
+
+- [x] [C] Expose route summaries, access conflicts, vehicle permissions, and source caveats
+- [x] [C] Profile axes/tooltips, reverse playback, point navigation, saved views, and mobile layout
+- [x] [C] Timestamp/photo media schema, pinned evidence cards, and explicit coverage verification
+- [x] [C] Public NWS, SNOTEL, USGS catalog, and agency document snapshots with dates
+- [x] [C] Ranked field plan, persistent notes/status, backup/import, and GPX exports
+- [x] [C] Offline immutable builds, input hashes, overview/detail terrain, failure states
+- [x] [C] JavaScript/pipeline/browser verification and 12-point USGS registration check
+- [x] [C] Package static preview and verify project-path deployment readiness
+- [x] [L] Review the enhanced planner and approve publishing the prepared Pages artifact (2026-09-08)
+- [ ] [C] Publish the reviewed artifact to GitHub Pages and verify the live project URL
 
 ## Phase 3 — Obstacle inspection mode (v3)
 <!-- ringboard: window=2027-04-01..2027-06-30 -->

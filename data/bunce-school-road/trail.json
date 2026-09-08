@@ -8,32 +8,60 @@
       "id": "main",
       "name": "Bunce School Road (FR 105)",
       "role": "primary",
-      "osm_way_ids": [164929506],
-      "mvum_ids": ["105.0"]
+      "osm_way_ids": [
+        164929506
+      ],
+      "mvum_ids": [
+        "105.0"
+      ]
     },
     {
       "id": "ironclads",
       "name": "Ironclads Road (FR 216.1)",
       "role": "side",
-      "osm_way_ids": [338304625],
-      "mvum_ids": ["216.1"],
-      "notes": "Hard side trail (reports: lifted + 35s, steep ledges). Leaves Bunce at mile 0.93. OSM shows no mapped connection to the Lateral (402 m gap at the north ends) — modeled separately; verify on the ground."
+      "osm_way_ids": [
+        338304625
+      ],
+      "mvum_ids": [
+        "216.1"
+      ],
+      "notes": "The north-end connection to the Lateral is unmapped in the cached OSM geometry (about 402 m). An older trip report describes a rocky climb and a gated/private-property exit; it is historical context, not current access evidence. Do not assume a connected driving loop."
     },
     {
       "id": "ironclads-lateral",
       "name": "Ironclads Lateral (FR 216.1A)",
       "role": "side",
-      "osm_way_ids": [338303950],
-      "mvum_ids": ["216.1"],
-      "notes": "Second Ironclads leg; rejoins Bunce exactly at hairpin #1 (mile 1.51). Together with 216.1 this is likely the trip reports' 'lollipop loop', but the connecting link is unmapped in OSM."
+      "osm_way_ids": [
+        338303950
+      ],
+      "mvum_ids": [
+        "216.1"
+      ],
+      "notes": "Cached OSM explicitly tags this leg motor_vehicle=no. The manifest associates FR 216.1, but the Lateral is labeled FR 216.1A; agency designation and ownership need verification. An older trip report describes a gated exit near private property. No connected driving itinerary is established."
     },
     {
       "id": "t33",
       "name": "T-33 Crash Site (FR 203.1 North Basin + crash trail)",
       "role": "side",
-      "osm_way_ids": [574556577, 1507542637],
-      "mvum_ids": ["203.1"],
-      "notes": "North Basin track from Bunce's south end, then the short T-33A crash trail path to the 1965 wreck site."
+      "osm_way_ids": [
+        574556577,
+        1507542637
+      ],
+      "mvum_ids": [
+        "203.1"
+      ],
+      "notes": "Includes North Basin and the short crash-site segment. The latter is tagged highway=path with ATV/4WD tags in OSM; route type and motorized access need agency verification rather than an inferred walking/driving classification."
+    }
+  ],
+  "state": "CO",
+  "agency_sources": [
+    {
+      "title": "Arapaho and Roosevelt National Forests: current alerts and orders",
+      "url": "https://www.fs.usda.gov/r02/arp/alerts"
+    },
+    {
+      "title": "Forest visitor information and motor vehicle maps",
+      "url": "https://www.fs.usda.gov/r02/arp"
     }
   ]
 }

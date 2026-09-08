@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Phase 1 pipeline: build viewer assets for one trail from cached/raw public data.
+"""Shared terrain/profile utilities; CLI delegates to the versioned planning builder.
 
 Deterministic: same inputs -> same outputs. Network is touched only to fill a missing
 raw cache file (the DEM export); everything derived is rebuilt from raw/ every run.
@@ -112,7 +112,7 @@ def snap_bbox(bbox, cell_deg):
     return (west, south, west + width_px * cell_deg, south + height_px * cell_deg), width_px, height_px
 
 
-def fetch_dem(raw_dir: Path, bbox, width_px: int, height_px: int) -> np.ndarray:
+def fetch_dem(raw_dir: Path, bbox, width_px: int, height_px: int, offline=False) -> np.ndarray:
     """Export the corridor DEM in horizontal bands (cached individually), stack north->south."""
     west, south, east, north = bbox
     n_bands = math.ceil(width_px * height_px / MAX_EXPORT_PX)
@@ -123,6 +123,8 @@ def fetch_dem(raw_dir: Path, bbox, width_px: int, height_px: int) -> np.ndarray:
         r0, r1 = i * band_rows, min((i + 1) * band_rows, height_px)
         band_path = raw_dir / f"dem-{bbox_key}-band{i}.tif"
         if not band_path.exists():
+            if offline:
+                raise FileNotFoundError(f"Missing cached DEM: {band_path}. Run with --fetch first.")
             lat_n = north - r0 * (north - south) / height_px
             lat_s = north - r1 * (north - south) / height_px
             params = urllib.parse.urlencode(
@@ -206,8 +208,8 @@ def build_profile(centerline, grid, bbox):
         float(np.median(raw_z[max(0, i - 2) : i + 3])) for i in range(len(raw_z))
     ]
     out = []
-    for (d, lon, lat), z in zip(pts, smooth_z):
-        out.append({"d": round(d, 1), "lon": lon, "lat": lat, "z": round(z, 2)})
+    for (d, lon, lat), z, rz in zip(pts, smooth_z, raw_z):
+        out.append({"d": round(d, 1), "lon": lon, "lat": lat, "z": round(z, 2), "raw_z": round(rz, 2)})
     for i, p in enumerate(out):
         if 0 < i < len(out) - 1:
             dz = out[i + 1]["z"] - out[i - 1]["z"]
@@ -322,95 +324,13 @@ def validate_against_service(profile, tolerance_m=8.0):
         print(f"  validate mile {p['d']/1609.34:.2f}: grid {p['z']:.1f} vs service {float(value):.1f} (d={diff:.1f} m)")
     if worst > tolerance_m:
         print(f"WARNING: worst validation diff {worst:.1f} m exceeds {tolerance_m} m — check export registration")
+    return worst
 
 
 def main():
-    trail_dir = Path(sys.argv[1] if len(sys.argv) > 1 else "data/bunce-school-road")
-    raw, derived = trail_dir / "raw", trail_dir / "derived" / "viewer"
-    derived.mkdir(parents=True, exist_ok=True)
-
-    routes = load_routes(trail_dir)
-    lons = [c[0] for r in routes for c in r["coords"]]
-    lats = [c[1] for r in routes for c in r["coords"]]
-    cell_deg = TARGET_RES_M / M_PER_DEG_LAT
-    bbox, width_px, height_px = snap_bbox(
-        (
-            min(lons) - MARGIN_DEG,
-            min(lats) - MARGIN_DEG,
-            max(lons) + MARGIN_DEG,
-            max(lats) + MARGIN_DEG,
-        ),
-        cell_deg,
-    )
-
-    grid = fetch_dem(raw, bbox, width_px, height_px)
-    nodata = grid <= -9000
-    if nodata.any():
-        grid[nodata] = float(grid[~nodata].min())
-    print(f"DEM grid {grid.shape}, z {grid.min():.1f}..{grid.max():.1f} m")
-
-    # Sampling happens against pixel CENTERS; bbox gives pixel outer edges.
-    cbounds = (
-        bbox[0] + cell_deg / 2,
-        bbox[1] + cell_deg / 2,
-        bbox[2] - cell_deg / 2,
-        bbox[3] - cell_deg / 2,
-    )
-
-    grid.astype("<f4").tofile(derived / "terrain.bin")
-    (derived / "terrain.json").write_text(
-        json.dumps(
-            {
-                "west": cbounds[0],
-                "south": cbounds[1],
-                "east": cbounds[2],
-                "north": cbounds[3],
-                "cols": int(grid.shape[1]),
-                "rows": int(grid.shape[0]),
-                "zmin": float(grid.min()),
-                "zmax": float(grid.max()),
-                "source": "USGS 3DEP (3DEPElevation ImageServer export, ~2m)",
-            },
-            indent=2,
-        )
-    )
-
-    profiles, manifest_routes, analysis = {}, [], {}
-    for r in routes:
-        profile = build_profile(r["coords"], grid, cbounds)
-        profiles[r["id"]] = profile
-        (derived / f"route-{r['id']}.json").write_text(json.dumps(profile), encoding="utf-8")
-        analysis[r["id"]] = build_analysis(profile)
-        manifest_routes.append(
-            {
-                "id": r["id"], "name": r["name"], "role": r.get("role", "side"),
-                "length_m": profile[-1]["d"], "file": f"route-{r['id']}.json",
-            }
-        )
-        print(
-            f"route {r['id']}: {len(profile)} pts, {profile[-1]['d']/1609.34:.2f} mi, "
-            f"z {min(p['z'] for p in profile):.0f}..{max(p['z'] for p in profile):.0f} m, "
-            f"max grade {max(abs(p['g']) for p in profile)*100:.0f}%, "
-            f"{len(analysis[r['id']]['steep'])} steep / {len(analysis[r['id']]['rough'])} rough zones"
-        )
-    (derived / "routes.json").write_text(json.dumps(manifest_routes, indent=1), encoding="utf-8")
-    (derived / "analysis.json").write_text(json.dumps(analysis, indent=1), encoding="utf-8")
-    validate_against_service(profiles["main"])
-
-    mvum, seen = [], set()
-    for f in sorted(raw.glob("mvum-*.geojson")):
-        for seg in load_mvum(f):
-            key = (seg["id"], tuple(seg["coords"][0]))
-            if key not in seen:
-                seen.add(key)
-                mvum.append(seg)
-    (derived / "mvum.json").write_text(json.dumps(mvum), encoding="utf-8")
-    print(f"mvum: {len(mvum)} segments")
-
-    waypoints = anchor_waypoints(trail_dir, profiles)
-    (derived / "waypoints.json").write_text(json.dumps(waypoints, indent=1), encoding="utf-8")
-    print(f"waypoints: {len(waypoints)} anchored" + (
-        f", worst offset {max(w['offset_m'] for w in waypoints)} m" if waypoints else ""))
+    """Compatibility CLI: use the validated, versioned publisher."""
+    from enhance import cli
+    cli()
 
 
 if __name__ == "__main__":

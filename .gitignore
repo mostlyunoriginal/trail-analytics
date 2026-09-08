@@ -6,3 +6,8 @@ data/**/*.laz
 NoteAttachments/
 __pycache__/
 data/**/*.bin
+data/**/derived/viewer/releases/
+data/**/derived/viewer/current.json
+dist/
+.qa/
+*.tmp.json
