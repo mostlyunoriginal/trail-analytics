@@ -48,6 +48,19 @@ The owner made the repository public, and deployment completed on 2026-09-08
 with HTTPS enforced. GitHub reports deployment commit `197c883` as built.
 The personal homepage remains independent.
 
+### 2026-09-11 shared-media release
+
+- Source commit: `c544c8b` on `astra-enhance`, including the attachment workflow,
+  repository import command, and seven reviewed photos with saved map pins.
+- Pages deployment commit: `eabb06f` on `gh-pages`; GitHub's
+  [deployment run](https://github.com/mostlyunoriginal/trail-analytics/actions/runs/34657151249)
+  completed successfully.
+- Package: `dist/media-publish-20260911/`, build `47c0f4f7ae5024527dea`, about 88 MB.
+  The live `artifact.json` reports seven published attachments.
+- Verified all seven full-size photos in a fresh browser on the live project URL,
+  terrain loading, and a 390px mobile view/photo preview, with no page errors or
+  horizontal overflow. Source and deployment branches were pushed without force.
+
 For subsequent deployments:
 
 1. Refresh public source snapshots if appropriate, build, and package into a new

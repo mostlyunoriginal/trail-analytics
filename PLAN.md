@@ -282,6 +282,7 @@ Useful standalone photos/videos pinned to trail/map locations (see docs/capture-
 - [x] [C] Local media persistence, quota/error handling, and media-plus-metadata backup/import
 - [x] [C] Selected-media publication export with location/metadata privacy review
 - [x] [C] Import reviewed media into Git-tracked files and include shared attachments in normal site builds
+- [x] [C] Publish seven reviewed photos and the media-enabled viewer to GitHub Pages; verify live desktop/mobile loading (2026-09-11)
 - [x] [C] Replace reconstruction checklists/time assumptions in field-plan generators; regenerate reports
 - [x] [C] Review filters for unplaced/undated/old/unverified media; captions and explicit target coverage confirmation
 - [x] [C] Verify v3 acceptance checks, mobile/coordinate placement, and existing-media regression — 17 JS + 11 Python tests; 11 media + 14 existing-viewer browser checks (2026-09-10)
