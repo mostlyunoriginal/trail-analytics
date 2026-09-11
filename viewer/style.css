@@ -9,6 +9,81 @@
   --amber: #f1c176;
   --red: #ec9287;
 }
+.media-drop {
+  border: 1px dashed var(--accent);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.media-drop label,
+.media-drop small,
+.media-card small,
+#mediaForm label {
+  display: block;
+  margin: 8px 0;
+}
+#mediaFiles,
+#mediaForm label > input:not([type="checkbox"]),
+#mediaForm textarea,
+#mediaForm select {
+  width: 100%;
+}
+#mediaPreview img,
+#mediaPreview video {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  background: #071719;
+  border-radius: 6px;
+}
+#mediaEditor {
+  margin: 16px 0;
+  padding: 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+}
+.media-coordinate-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.media-coordinate-row input {
+  width: 100%;
+}
+.media-card {
+  border-bottom: 1px solid var(--border);
+  padding: 12px 0;
+  overflow-wrap: anywhere;
+}
+.media-open {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-top: 6px;
+}
+#libraryStatus {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.media-picking canvas {
+  cursor: crosshair;
+}
+.map-media-action {
+  position: absolute;
+  top: 52px;
+  left: 16px;
+  z-index: 2;
+}
+.media-save-actions {
+  position: sticky;
+  bottom: 0;
+  background: var(--panel);
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+.tabs {
+  flex-wrap: wrap;
+}
 * {
   box-sizing: border-box;
 }

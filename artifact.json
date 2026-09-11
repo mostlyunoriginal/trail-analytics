@@ -1,7 +1,8 @@
 {
-  "build_id": "0d111a99c7608c98ddf6",
-  "files": 221,
-  "bytes": 48753671,
+  "build_id": "47c0f4f7ae5024527dea",
+  "files": 232,
+  "bytes": 88362108,
   "entry": "index.html",
-  "contains": "Viewer and one public-data release only; excludes raw caches, tools, notes and browser storage."
+  "published_media": 7,
+  "contains": "Viewer, one public-data release, repository media, and optional reviewed publication media; excludes raw caches, tools, notes and browser storage."
 }

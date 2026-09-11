@@ -22,6 +22,7 @@
         <div><strong>TRAIL ANALYTICS</strong><span id="bundleName">Plan the next mile</span></div>
       </div>
       <div class="header-actions">
+        <button id="addMedia" disabled>Add media</button>
         <button id="overview">Fit bundle</button><button id="share">Copy view link</button
         ><button id="togglePanel" aria-expanded="true" aria-controls="sidebar">Hide planner</button>
       </div>
@@ -29,6 +30,7 @@
     <main id="workspace">
       <section id="mapArea" aria-label="Interactive trail map">
         <div id="cesium"></div>
+        <button id="addMapMedia" class="map-media-action" hidden>Add media at selected point</button>
         <div class="map-hud">
           <span id="hudMile">0.00 mi</span><span id="hudElev">— ft</span
           ><span id="hudGrade">—% estimated grade</span>
@@ -47,9 +49,11 @@
           <button data-tab="summary" aria-pressed="true">Overview</button
           ><button data-tab="evidence" aria-pressed="false">Evidence</button
           ><button data-tab="conditions" aria-pressed="false">Conditions</button
-          ><button data-tab="field" aria-pressed="false">Field plan</button>
+          ><button data-tab="field" aria-pressed="false">Field plan</button
+          ><button data-tab="library" aria-pressed="false">My media</button>
         </nav>
         <div class="sidebar-body">
+          <section id="library" class="tab-panel" hidden></section>
           <section id="summary" class="tab-panel">
             <p class="eyebrow">EXPLORE THE BUNDLE</p>
             <label class="route-label" for="route">Selected route</label
@@ -76,6 +80,7 @@
               <button id="pinMedia" aria-pressed="false">Pin card</button>
             </div>
             <p id="evidenceHint" class="muted">Select a waypoint or scrub nearby.</p>
+            <button id="attachWaypoint">Add media at this waypoint</button>
             <div id="mediaContent"></div>
             <details open>
               <summary>Data provenance</summary>
@@ -127,9 +132,9 @@
               <summary>Shared capture checklist</summary>
               <ul>
                 <li>Confirm access and inspect the candidate’s actual location.</li>
-                <li>Slow overlapping orbits at waist, head, and overhead height.</li>
-                <li>Capture each driving line and a measured scale reference.</li>
-                <li>Lock exposure, enable location tagging, and record conditions.</li>
+                <li>Take a clear approach view and useful detail photos of the trail or obstacle.</li>
+                <li>Use a short video when motion helps explain a driving line or condition.</li>
+                <li>GPS is optional: note the route/waypoint, date, direction, and conditions for manual pinning.</li>
               </ul>
             </details>
             <div id="captureList"></div>

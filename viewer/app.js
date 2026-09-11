@@ -21,6 +21,7 @@ import {
   mergeWeather,
 } from "./core.js";
 import { createTerrain } from "./terrain.js";
+import { createMediaLibrary } from "./media-library.js";
 
 const $ = (id) => document.getElementById(id);
 const TRAIL = new URLSearchParams(location.search).get("trail") || "bunce-school-road";
@@ -318,6 +319,7 @@ async function boot() {
     shownId = null,
     chosenWaypoint = null,
     saving = false;
+  let mediaLibrary = null;
   const cameraState = () => {
     const c = viewer.camera.positionCartographic;
     return {
@@ -437,6 +439,7 @@ async function boot() {
     controlValues();
     drawProfile();
     if (activeTab === "evidence") renderMedia();
+    mediaLibrary?.refreshNearby();
     viewer.scene.requestRender();
     persist();
   }
@@ -981,7 +984,7 @@ async function boot() {
   $("next").onclick = () => nextPoint(1);
   document.addEventListener("keydown", (e) => {
     if (
-      /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(e.target.tagName) ||
+      /^(INPUT|TEXTAREA|SELECT|BUTTON|SUMMARY|A|VIDEO)$/.test(e.target.tagName) ||
       e.target.isContentEditable ||
       e.ctrlKey ||
       e.metaKey ||
@@ -1108,6 +1111,7 @@ async function boot() {
     }
   };
   viewer.screenSpaceEventHandler.setInputAction((e) => {
+    if (mediaLibrary?.handleClick(e)) return;
     const picked = viewer.scene.pick(e.position),
       p = picked?.id?.properties,
       id = p?.route?.getValue();
@@ -1152,6 +1156,23 @@ async function boot() {
         : routes[0].id,
     url && routes.some((r) => r.id === url.route) ? url : undefined,
   );
+  try {
+    mediaLibrary = await createMediaLibrary({
+      viewer, Cesium: C, trail: TRAIL, routes, profiles, waypoints, targets,
+      getContext: () => ({ route: activeId, d: view.d, pin: { lat: sample(profile, view.d).lat, lon: sample(profile, view.d).lon } }),
+      showPanel: () => tab("library"),
+      prepareMap: () => { stop(); switchMode("global"); },
+    });
+    $("addMedia").onclick = () => mediaLibrary.open();
+    $("attachWaypoint").onclick = () => {
+      const waypoint = [...waypoints, ...targets].find((point) => point.id === shownId);
+      if (!waypoint) { toast("Select a waypoint first, or use Add media for manual placement."); return; }
+      mediaLibrary.open({ pin: { lat: waypoint.lat, lon: waypoint.lon }, route: waypoint.route, d: waypoint.d, method: "waypoint" });
+    };
+    $("addMedia").disabled = false;
+  } catch (error) {
+    $("library").textContent = `Media library could not start: ${error.message}. Reload to retry. The trail viewer is still available.`;
+  }
   $("loadMessage").textContent = "Route controls are ready. Loading the first map tiles…";
   setTimeout(() => {
     if (!document.body.dataset.mapReady) {
