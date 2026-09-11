@@ -22,7 +22,13 @@ subdirectory. All application asset paths are relative; view links preserve it.
 Choose a new output directory for subsequent packages; packaging never overwrites
 an existing artifact. The packager verifies every release asset's hash first.
 
-The artifact contains only the viewer and one complete data release. It excludes
+The artifact contains the viewer, one complete data release, and the shared media referenced
+by `viewer/published-media.json`. Import a reviewed media export with
+`py tools/pipeline/import_media.py "C:/path/to/bunce-school-road-publication.trailmedia"`,
+then commit/push the manifest and `viewer/published-media/` assets with the viewer code.
+Normal packaging includes this media automatically and verifies its file hashes.
+See [the media guide](media-guide.md#share-media-through-the-repository) for the full workflow.
+The artifact excludes
 raw downloads, Python tools, Ringboard, workspace notes, and browser-stored field
 notes. Review `artifact.json`, route caveats, and the dated evidence before making
 the site public. Images referenced by external URL remain external.

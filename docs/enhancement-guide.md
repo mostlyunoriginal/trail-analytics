@@ -26,6 +26,11 @@ independent of access status.
 
 ## Evidence and confidence
 
+**Personal media:** choose **Add media** or **My media** for photo/video file attachment,
+supported geographic metadata suggestions, and editable manual pins. Files and pins persist
+locally with complete backup/import; publication is a separate explicit action. See
+[the media guide](media-guide.md). The schema below remains the curated public-data path.
+
 The Evidence tab follows nearby waypoints. Pinning a card keeps it in place while
 scrubbing. YouTube supports timestamps; photos support source URLs, alt text,
 recording dates, and direction. Unverified media is labeled as context.
@@ -92,6 +97,10 @@ a dated district-level fire-restriction notice. The Ironclads Lateral access
 conflict and unmapped connection remain unresolved.
 
 ## Field plan
+
+The [media-first capture checklist](capture-protocol.md) supersedes the reconstruction recipe.
+The generator now budgets roughly five minutes per obstacle and three per terrain candidate
+for useful approach/detail views, with optional video and location notes, not reconstruction.
 
 The list ranks curated obstacle candidates before sustained-grade candidates and
 grade-variation candidates. Access conflicts carry an explicit instruction to

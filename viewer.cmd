@@ -10,5 +10,5 @@ if errorlevel 1 (
   exit /b 1
 )
 start "" http://127.0.0.1:8351/viewer/
-py -m http.server 8351 --directory "%~dp0" --bind 127.0.0.1
+py -m http.server 8351 --directory "%~dp0." --bind 127.0.0.1
 popd

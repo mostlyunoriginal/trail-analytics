@@ -129,7 +129,7 @@ def capture_targets(route, profile, analysis, waypoints):
         if w["route"] == route["id"] and w["kind"] == "obstacle":
             targets.append({"id": w["id"], "route": route["id"], "d": w["d"], "lon": w["lon"], "lat": w["lat"],
                             "title": w["title"], "reason": w.get("notes", ""), "confidence": w.get("confidence", "approximate"),
-                            "priority": 1, "minutes": 12})
+                            "priority": 1, "minutes": 5})
     for kind in ("steep", "grade_variability"):
         for zone in analysis[kind]:
             mid = (zone["d0"] + zone["d1"]) / 2
@@ -139,7 +139,7 @@ def capture_targets(route, profile, analysis, waypoints):
             targets.append({"id": f"{route['id']}-{kind}-{round(mid)}", "route": route["id"], "d": p["d"],
                             "lon": p["lon"], "lat": p["lat"], "title": f"{'Sustained grade' if kind == 'steep' else 'Grade variation'} · mile {mid / MI:.2f}",
                             "reason": "DEM candidate: inspect the road alignment and terrain before choosing a capture location.",
-                            "confidence": "model candidate", "priority": 2 if kind == "steep" else 3, "minutes": 8})
+                            "confidence": "model candidate", "priority": 2 if kind == "steep" else 3, "minutes": 3})
     media = [m for w in waypoints if w["route"] == route["id"] for m in w.get("media", [])]
     for t in targets:
         t["covered"] = any(media_covers(m, t["id"]) for m in media)
@@ -274,7 +274,7 @@ def build(trail_dir, fetch=False, validate_live=False):
             lines = [f"# Field plan — {manifest['name']}", "", "Access conflicts must be resolved before visiting. Times are capture estimates, excluding travel.", "", "| Priority | Route | Mile | Target | Minutes | Access |", "|---|---|---:|---|---:|---|"]
             for t in sorted(targets,key=lambda t:(t["priority"],t["route"],t["d"])):
                 lines.append(f"| {t['priority']} | {t['route']} | {t['d']/MI:.2f} | {t['title']} | {t['minutes']} | {t['access']} |")
-            lines += ["", "## Shared capture checklist", "", "- Confirm access and the candidate's actual location.", "- Slow overlapping orbits at waist/head/overhead height; capture each intended driving line.", "- Include a measured scale reference; lock exposure; enable location tagging.", "- Record observation date, direction, conditions, and capture filenames.", "", "A nearby video is context. Coverage requires an explicitly verified target and a timestamp (or photo).", "", "## Access evidence", ""]
+            lines += ["", "## Shared capture checklist", "", "- Confirm access and the candidate's actual location; capture only from a safe spot.", "- Take a clear approach view and useful detail photos of the trail, obstacle, or driving line.", "- Use a short video when motion adds context. No orbits or reconstruction sequence required.", "- GPS is optional: note the route/waypoint for manual pinning, observation date, direction, conditions, and filenames.", "- Review missing, unplaced, unclear, or outdated media after the visit; back up files and pins.", "", "Allow roughly 5 minutes per obstacle or 3 minutes per terrain candidate for a few useful views; travel is excluded.", "A nearby video is context. Coverage requires an explicitly verified target and a timestamp (or photo).", "", "## Access evidence", ""]
             for r in routes:
                 lines.append(f"- **{r['name']}**: {r['access_status']}. {r.get('notes','')}".rstrip())
             (out/"field-plan.md").write_text("\n".join(lines)+"\n",encoding="utf-8")

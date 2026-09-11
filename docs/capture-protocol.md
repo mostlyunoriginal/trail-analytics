@@ -1,49 +1,60 @@
-# Field Capture Protocol — Obstacle Photogrammetry / Gaussian Splats
+# Field Capture Protocol — Useful Trail Photos and Videos
 
-*Bring this checklist on trail visits. Goal: enough coverage for a clean reconstruction on the
-first try, so an obstacle doesn't need a second trip just for data.*
+*Revised 2026-09-10. Collect media that is useful to look at directly, then pin it to the
+trail/map. No Gaussian splats, overlapping orbits, or reconstruction capture sets required.*
 
-## Per-obstacle capture recipe
+## Before the visit
 
-1. **Two or three slow orbits** around/through the obstacle at different heights:
-   - waist height
-   - head height
-   - arms-overhead if terrain allows
-2. **One pass along each driving line** you care about (entry to exit, from the driver's
-   perspective height).
-3. **Overlap is everything.** Each frame should share ~70% of its view with its neighbors.
-   Move slowly; when in doubt, shoot more.
-4. **Close the loop** — finish an orbit back where it started so the reconstruction can tie
-   itself together.
+- Review the field plan for missing views, uncertain locations, and outdated observations.
+  Resolve access questions before visiting; a capture candidate is not permission to enter.
+- Bring a phone/camera with enough battery and storage. Enable location tagging if comfortable,
+  but it is optional: every photo/video can be placed manually afterward.
+- Save a route map or waypoint list for reference. Existing GPX/notes exports can help with
+  field navigation. Trial [media attachment](media-guide.md) with existing files before visiting.
 
-## Camera settings (phone is fine)
+## At each useful location
 
-- 4K video, 1–2 minutes of slow walking footage per obstacle — or 150–300 photos.
-- **Lock exposure.** Auto-exposure swings confuse feature matching.
-- Keep shutter fast enough to avoid motion blur (bright conditions help; walk slowly).
+1. **Show the context.** Take a clear approach view so someone can recognize the location
+   and understand where the trail goes. Junctions, trailheads, landmarks, and ordinary trail
+   conditions are useful too, not just obstacles.
+2. **Show the detail that matters.** Add a view of the ledge, rut, surface, clearance, or
+   alternate line you want to remember. A few informative photos are better than a large
+   sequence captured only for reconstruction. A size reference is optional; do not infer
+   precise dimensions from perspective alone.
+3. **Use video when motion adds context.** Record a steady walkthrough or approach from a
+   safe position, or a short explanation of what the viewer should notice. There is no
+   required duration or resolution; prioritize visibility and manageable files.
+4. **Note the location.** Keep GPS metadata if available. Otherwise record the route name,
+   nearby waypoint/junction, approximate mileage, or a map reference. Note if the camera is
+   off-trail or the subject is farther away; its location need not equal the camera's GPS.
+5. **Add context.** Record the date, travel/view direction, conditions, and a brief description.
+   For a longer video, note the timestamp of the relevant moment and where it was filmed.
 
-## Conditions (matter more than gear)
+## Quality and safety
 
-- **Overcast is ideal.** Harsh shadows bake into the model and confuse matching.
-- Avoid wind strong enough to move vegetation in frame.
-- Keep people, dogs, and vehicles out of frame — they become ghosts in the reconstruction.
-
-## Georeferencing requirements (one per obstacle)
-
-- **Scale:** include one object of known size in a few frames, or tape/pace one distance
-  across the obstacle and note it. One measurement is enough.
-- **Position:** leave phone GPS/location tagging ON — EXIF GPS gives coarse placement
-  (expect 3–5m error, worse in canyons). Fine alignment happens later in the viewer.
-
-## Known failure modes (expect holes here)
-
-- Shiny/wet rock and water crossings
-- Deep shadow under ledges (shoot extra close-in angles)
-- Featureless sand
-- Anything moving (vegetation in wind, dust, people)
+- Check that the important feature is visible and in focus; add another angle if glare,
+  shadow, dust, or vegetation obscures it. No special lighting or exposure-lock recipe is needed.
+- Capture only when safely stopped or on foot in a safe, permitted spot. Do not operate the
+  camera while driving or stand in a vehicle's path to get a better view.
+- Be mindful of people, license plates, and sensitive locations before sharing. Keep originals
+  privately and review both visible content and embedded location metadata before publication.
 
 ## After the visit
 
-Run the ingest pipeline. It should report, per obstacle, whether reconstruction succeeded and
-if not, *why* (insufficient overlap on which face, motion blur in which section) — that report
-is the capture checklist for the next visit.
+The attachment flow is **Add media → preview → confirm or choose location → save**:
+
+- Import photos/videos and review suggested GPS pins. GPS is a starting suggestion, not
+  proof of the intended trail location or obstacle coverage.
+- For any item, with or without GPS, select a map point, existing waypoint, or trail scrub
+  position; move the pin until correct. Review route/mileage and choose whether to snap
+  to the trail or keep the actual off-trail location.
+- Add a useful title and optional date/direction/conditions. Keep uncertain items unplaced
+  rather than inventing a location. For moving video, pin a representative point and identify
+  the relevant timestamp; one pin does not locate the entire clip.
+- Review whether the media answers the field-plan question before marking coverage verified.
+  Flag missing context, unclear views, or old conditions for a future visit.
+- Back up original files and placement records using **Back up all / selected** in My media.
+  Browser-local storage is not cloud backup, and the notes-only export does not include media.
+
+See [the media guide](media-guide.md) for supported files and the attachment workflow;
+the existing public curation format remains documented in [the enhancement guide](enhancement-guide.md).

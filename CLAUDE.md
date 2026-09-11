@@ -2,8 +2,8 @@
 
 Personal agentic tool for offroad trail modeling, analysis, and visualization: trail name in →
 public data gathered (USGS 3DEP DEM, NAIP imagery, USFS MVUM / OSM routes) → interactive 3D
-flythrough in the browser (CesiumJS), with waypoint-anchored media and, eventually, Gaussian-splat
-obstacle inspection from personal field capture.
+flythrough in the browser (CesiumJS), with waypoint-anchored media and local personal photo/video
+attachment using metadata-assisted or manual map pins, not Gaussian splats.
 
 ## Session protocol
 
@@ -18,7 +18,8 @@ obstacle inspection from personal field capture.
 | `PLAN.md` | Founding document (vision, constraints, data sources, roadmap) **and** the Ringboard work tracker at the bottom — single source of truth for the plan. |
 | `NOTES.md` | User's notes to agents; lifecycle governed by its header. Never delete entries. |
 | `tools/ringboard/` | Ringboard dashboard kit (port 8350). Launch via `ringboard.cmd` at repo root. |
-| `docs/capture-protocol.md` | Field checklist for obstacle photogrammetry capture. |
+| `docs/capture-protocol.md` | Field checklist for useful standalone photos/videos and location notes. |
+| `docs/media-guide.md` | Media attachment, supported metadata/formats, backup/restore, and explicit publication. |
 
 ## Maintenance
 

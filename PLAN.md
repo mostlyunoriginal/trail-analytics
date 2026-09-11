@@ -1,6 +1,6 @@
 # Trail Analytics — Project Plan
 
-*Founding document, 2026-09-05. This is the durable record of the project vision and roadmap;
+*Founded 2026-09-05; media-first revision 2026-09-10. This is the durable record of the project vision and roadmap;
 update it as decisions change rather than letting it drift.*
 
 ## What this is
@@ -23,9 +23,13 @@ attempting a trail, and refinable planning across repeated attempts.
   *embeds* (not scraped/downloaded content). No scraping of AllTrails, onX, Gaia, Trails Offroad.
 - **Viewer controls:** position along the trail (scrub), camera perspective, and layer toggles.
   Vertical exaggeration and time-of-day lighting are cheap adds. No seasonal simulation.
-- **Obstacle-scale 3D comes from personal field capture**, not from crowd-sourced footage.
-  Found-footage reconstruction is research-grade unreliable; deliberate capture by the user is
-  exactly what photogrammetry/Gaussian splatting works well with.
+- **Personal photos and videos are the deliverable**, not inputs for reconstruction.
+  Collect useful views of conditions, obstacles, driving lines, junctions, and landmarks,
+  and attach them to specific locations. Gaussian splats, photogrammetry, and reconstructed
+  obstacle measurements are out of the active roadmap.
+- **Location metadata assists; the user decides.** Suggest a pin from geographic metadata
+  when available, but always allow manual placement and correction, even for geotagged media.
+  Attaching media must not require GPS, a special capture recipe, or editing JSON.
 - **A trail is a route bundle.** Intake accepts "X plus Y and Z"; the agent resolves that to a
   `trail.json` manifest (primary route + named side routes, each mapped to OSM way ids and
   MVUM route ids). One scene per bundle: shared terrain, per-route profiles, route selector in
@@ -52,7 +56,7 @@ code that produces the same output from the same inputs.
 | Trail geometry (fallback/supplement) | OpenStreetMap | Overpass API | Plus GPX tracks from forums when available. |
 | Trip reports, photos, waypoint names | Forums, public web | Agent search | Used for obstacle-zone hints ("the crux," "waterfall" + mileage). |
 | Video | YouTube | Embeds anchored to waypoints | Embed, don't download. |
-| Obstacle-scale capture | Personal field visits | Phone video/photos → splat pipeline | See `docs/capture-protocol.md`. |
+| Personal photos and videos | Personal field visits | File attachment → metadata suggestion or manual map pin | Useful standalone evidence; see `docs/capture-protocol.md`. |
 
 ## Roadmap
 
@@ -71,29 +75,96 @@ controls, layer toggles, elevation/grade profile.
   conditions).
 - Analysis overlays: grade coloring on the trail line, steepest-segment callouts.
 
-### v3 — Obstacle inspection mode (Gaussian splats from field capture)
-- Ingest personal phone video/photo sets per obstacle → COLMAP poses → splat (Nerfstudio /
-  OpenSplat / Postshot; Postshot is a good Windows-native option). Phone apps (Polycam, Luma,
-  Scaniverse) are an acceptable shortcut.
-- **Georeferencing:** splats come out in arbitrary local coordinates and scale. Plan: automatic
-  coarse placement from photo EXIF GPS (3–5m error, worse in canyons) + one known measurement
-  per obstacle for scale + manual nudge/rotate/scale controls in the viewer to seat the splat
-  against the DEM once; save the transform.
-- **Measurement:** splats are for looking; measuring (ledge heights, breakover, line planning)
-  uses the point cloud/mesh that the same COLMAP step produces as a byproduct.
-- **Viewer integration:** obstacle markers in the terrain flythrough open a separate
-  "inspection mode" splat viewer with free orbit. Seamless splat-in-Cesium rendering is a
-  later polish item, not a blocker (alignment and depth-compositing are fiddly).
-- **Post-visit feedback loop:** the pipeline reports which captures failed reconstruction and
-  why (insufficient overlap, motion blur, deep shadow) as refined instructions for the next
-  visit. This is the "refinable planning for repeated attempts" goal applied to the data itself.
+### v3 — Easy media attachment and location pinning
+
+Extend the existing waypoint evidence viewer with a user-facing attachment workflow for
+personal photos and video files, while retaining curated photo URLs and YouTube embeds.
+This replaces the Gaussian-splat milestone. The first implementation is available locally as
+of 2026-09-10; see `docs/media-guide.md` for supported formats, limits, and publication steps.
+
+#### Attachment workflow
+
+1. **Add media** from the trail toolbar, a waypoint, or a selected map location. Offer a file
+   picker on desktop/mobile and drag-and-drop on desktop, for one file or a batch. Adding
+   from a waypoint/map point offers that location as a starting suggestion.
+2. **Preview and inspect metadata.** Show a thumbnail or playable video, filename, and
+   recording date when available. Read photo EXIF GPS and supported video location metadata.
+   Missing, invalid, or unreadable metadata must not block attachment; show a status such as
+   "No location found — choose on map." Never substitute import time for capture time.
+3. **Choose the location.** Show valid metadata locations as unconfirmed suggestions. Users
+   can accept a suggestion, click/tap anywhere on the map, drag the pin, select an existing
+   waypoint, or use the current trail scrub position. Offer coordinate entry as a keyboard
+   alternative. Manual placement is available regardless of whether GPS exists.
+4. **Review trail association.** Show the selected route, mileage, and distance from the pin
+   to the route. Offer optional snapping, never silent snapping. Allow off-trail pins (such
+   as overlooks or camera positions), changing routes, or a map-only pin with no route.
+   At crossings, loops, or nearby side routes, require review of ambiguous route/segment
+   suggestions. Warn about distant metadata without discarding it or forcing it onto a trail.
+5. **Save.** Show a final media-and-map preview with optional title, caption, direction,
+   conditions, and corrected recording date. Save after location confirmation, or retain
+   the item in a visible **Unplaced** inbox. Batches show per-file placement status; applying
+   one location to selected items requires an explicit action.
+6. **Browse and revise.** A map marker or nearby trail position opens its gallery; a gallery
+   item can jump to its pin. Support multiple items at a point, full-size photos, and playable
+   personal video. **Move pin**, **Use original GPS** (when available), edit, detach, and delete
+   remain available after saving. Distinguish geographic pins from the existing **Pin card**
+   control, which only holds an evidence card while scrubbing.
+
+Initially, each attachment has one location. A moving video can have a chosen start timestamp;
+its pin does not assert that the entire clip depicts that point. Multiple timestamped locations
+or a synchronized video track are later enhancements.
+
+#### Data, persistence, and evidence
+
+- Keep original geographic metadata separate from the confirmed display pin. Record stable
+  media IDs, asset references, media type, original filename, capture date/source, selected
+  coordinates, placement method (metadata/manual/waypoint/scrub), and confirmation status.
+  Moving a pin must preserve the original GPS and must not modify the source file.
+- Route association is optional and separate from coordinates. Retain the chosen route and
+  segment/chainage with a route geometry version so rebuilds flag associations for review
+  instead of silently moving user pins. Existing curated waypoint media must keep working.
+- Start local-first, with no required backend: plan an IndexedDB store for media bytes and
+  attachment records, not localStorage or temporary object URLs as durable storage. Prototype
+  supported formats and practical size limits; report unsupported codecs/formats, unreadable
+  files, and quota failures per item without losing successful attachments. Provide conversion
+  guidance rather than promising all phone formats.
+- Provide backup/import of **both media files and placement metadata**. Existing notes-only
+  exports are not media backups. Explain browser/device-local storage, possible eviction, and
+  no automatic cross-device sync. Report import duplicates/conflicts rather than silently
+  overwriting edited pins.
+- Local attachment does not upload or publish anything. Publishing selected media to the
+  static site is a separate, explicit export/build step with a preview of public files and
+  coordinates. Offer metadata-stripped publication copies while retaining originals locally;
+  review embedded metadata and visible private details. Keep YouTube embeds, not downloads.
+- A confirmed pin establishes intended placement, not obstacle coverage, current conditions,
+  or safe/legal access. Keep coverage verification explicit and dated. Missing metadata and
+  unconfirmed locations stay visible; proximity alone must not close a data gap.
+- Update field-plan generators and capture-time assumptions to request useful views rather
+  than overlapping orbits, scale references, or reconstruction coverage. Post-visit review
+  flags unplaced files, unclear views, missing context, and stale evidence, not failed splats.
+
+#### Acceptance checks
+
+- A geotagged photo gets a suggestion that can be accepted or manually overridden. Moving
+  it and reloading preserves the new pin and original GPS separately.
+- A photo or video without readable GPS can be previewed, manually pinned, saved, and reopened.
+- Geotagged video uses supported metadata with the same manual fallback as photos. Invalid
+  coordinates never become confirmed pins; unsupported media produces actionable feedback.
+- Map, waypoint, scrub-position, and coordinate-entry placement work on desktop and mobile;
+  keyboard users can attach and reposition without dragging.
+- Off-trail pins, nearby routes, crossings, and loops do not cause silent snapping or route
+  reassignment. Unplaced items remain recoverable; batch items can have different locations.
+- Multiple items at one pin remain accessible and personal videos play. Existing curated
+  media and evidence-card pinning do not regress.
+- Reload and backup/import retain playable media and edited locations. Storage failures are
+  visible; attaching locally never changes the published site or marks coverage verified.
 
 ## First spike (next step)
 
-Pick one trail the user knows well. Pull its real DEM, MVUM/OSM geometry, and NAIP imagery and
-evaluate actual data quality before committing to architecture. Second calibration exercise:
-splat any nearby boulder from phone video to calibrate capture-workflow expectations before
-spending a trail day on it.
+The terrain/data spike is complete (Phase 0). The next workflow spike is to attach a small
+set of personal photos and videos, with and without GPS, to Bunce School Road. Validate metadata
+extraction, manual pins, playback, and backup/restore before a dedicated capture visit. No
+boulder reconstruction or special capture sequence is required.
 
 **First target trail:** Bunce School Road, Colorado (near Allenspark/Peaceful Valley, Roosevelt
 National Forest — USFS land, so MVUM coverage is likely).
@@ -116,8 +187,30 @@ National Forest — USFS land, so MVUM coverage is likely).
   `docs/enhancement-guide.md`; deployment preparation is in `docs/github-pages.md`.
 
 - Current stack: Python + NumPy/tifffile, per-trail raw caches, static Cesium viewer.
-- Deployment publication and any future native-DEM/obstacle reconstruction upgrades
-  remain separate decisions after review of the prepared static artifact.
+- Future native-DEM upgrades remain a separate decision. Obstacle reconstruction is no longer
+  an active milestone; the 2026-09-10 media-first decision supersedes that earlier direction.
+
+### 2026-09-10 media-first decision
+
+- Prioritize standalone photos/videos and a friendly attachment interface with optional
+  metadata suggestions and always-available manual pins. Preserve the existing terrain viewer.
+- Phase 3 now delivers this workflow, not Gaussian splats. Its existing schedule window is a
+  soft placeholder, not a requirement to delay this next milestone until April.
+- The initial revision changed planning guidance only. The subsequent implementation adds the
+  attachment UI, local media storage, backups, and explicit publication export. Field-plan
+  generators and the current Bunce report now use the media-first checklist and time allowances.
+- The supported first pass reads EXIF GPS in JPEG/PNG/WebP and common MP4/MOV location tags;
+  HEIC, other GPS layouts, and unsupported video codecs need conversion or manual placement.
+  Local and published media are separate; publication remains an explicit review/deploy action.
+
+### 2026-09-11 repository media sharing
+
+- Reviewed publication exports can be imported into `viewer/published-media/` and its
+  manifest with `tools/pipeline/import_media.py`. Imports merge by attachment ID, preserving
+  other shared items. Files and pins can be committed and pushed with the source code.
+- Normal site packages verify and include the repository manifest's assets automatically.
+  Source pushes and `gh-pages` deployments remain separate; a new Pages deployment makes
+  attachments visible to public visitors. Browser attachment remains local until exported.
 
 ---
 
@@ -176,16 +269,20 @@ Trail name in → CesiumJS flythrough in the browser.
 - [x] [L] Review the enhanced planner and approve publishing the prepared Pages artifact (2026-09-08)
 - [x] [C] Publish the reviewed artifact to GitHub Pages and verify the live project URL (2026-09-08)
 
-## Phase 3 — Obstacle inspection mode (v3)
+## Phase 3 — User-friendly media attachment (v3)
 <!-- ringboard: window=2027-04-01..2027-06-30 -->
-Gaussian splats from personal field capture (see docs/capture-protocol.md).
+Useful standalone photos/videos pinned to trail/map locations (see docs/capture-protocol.md).
 
-- [ ] [L] Calibration splat: any nearby boulder from phone video
-- [ ] [L] Field capture at Bunce School Road per the capture protocol
-- [ ] [C] Splat pipeline
-  - [ ] Frame extraction + COLMAP camera poses
-  - [ ] Splat training (Postshot / OpenSplat / Nerfstudio)
-  - [ ] Point cloud / mesh export for measurement
-- [ ] [C] Georeferencing workflow: EXIF coarse placement, scale reference, manual seat + saved transform
-- [ ] [C] Inspection-mode viewer with obstacle markers in the flythrough
-- [ ] [C] Post-visit reconstruction feedback report (what failed, what to reshoot)
+- [x] [C] Prototype imports with generated photo/video fixtures; establish metadata, format, and size support
+- [x] [C] Add media picker/drop zone, previews, batch review, and recoverable Unplaced inbox
+- [x] [C] Suggest pins from geographic metadata; show missing/invalid metadata clearly
+- [x] [C] Manual map/waypoint/scrub/coordinate placement, optional snapping, and ambiguity review
+- [x] [C] Save/edit pins independently of original GPS; retain route/segment association provenance
+- [x] [C] Integrate pinned galleries, full-size photos, and personal video playback
+- [x] [C] Local media persistence, quota/error handling, and media-plus-metadata backup/import
+- [x] [C] Selected-media publication export with location/metadata privacy review
+- [x] [C] Import reviewed media into Git-tracked files and include shared attachments in normal site builds
+- [x] [C] Replace reconstruction checklists/time assumptions in field-plan generators; regenerate reports
+- [x] [C] Review filters for unplaced/undated/old/unverified media; captions and explicit target coverage confirmation
+- [x] [C] Verify v3 acceptance checks, mobile/coordinate placement, and existing-media regression — 17 JS + 11 Python tests; 11 media + 14 existing-viewer browser checks (2026-09-10)
+- [ ] [L] Trial existing photos/videos, then capture useful missing views at Bunce School Road
